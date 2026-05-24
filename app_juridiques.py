@@ -158,10 +158,20 @@ if opcao_menu == "💬 Tutor de Inteligência Artificial":
                 st.error(f"Erro na requisição: {e}")
 
 
-# 2ª OPÇÃO: GUIA DE METODOLOGIA INTERATIVO
+# 2ª OPÇÃO: GUIA DE METODOLOGIA INTERATIVO (Protegido contra plágio)
 elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
     st.subheader("📖 Assistente de Projetos Científicos e TCC")
-    st.write("Está travado na escolha do tema ou na estrutura do seu artigo ou monografia? Deixe a IA estruturar o esqueleto do seu trabalho acadêmico no padrão adequado.")
+    
+    # Alerta ético e legal visível na tela
+    st.warning(
+        "⚠️ **Diretriz Ética e de Integridade Acadêmica:**\n\n"
+        "Esta ferramenta funciona exclusivamente como um **guia de orientação e estrutura conceitual**. "
+        "A IA **não redigirá** o conteúdo do seu trabalho (parágrafos, capítulos ou introduções), "
+        "evitando práticas que configurem plágio ou violação de direitos autorais. "
+        "A autoria e o desenvolvimento do texto científico são de responsabilidade exclusiva do estudante."
+    )
+    
+    st.write("Insira a ideia central do seu projeto para obter um esqueleto metodológico personalizado no padrão acadêmico correto.")
     
     # Campo de entrada para o tema do aluno
     tema_usuario = st.text_input(
@@ -169,8 +179,48 @@ elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
         placeholder="Ex: A eficácia da LGPD na segurança pública"
     )
     
-    botao_gerar = st.button("🚀 Gerar Estrutura de TCC")
+    # Botão de execução
+    botao_gerar = st.button("🚀 Gerar Estrutura Acadêmica")
     
+    if botao_gerar and tema_usuario:
+        # Prompt robusto com limitadores rígidos de escopo e política anti-plágio
+        PROMPT_METODOLOGIA = (
+            f"Você é um orientador acadêmico especialista em metodologia científica jurídica, com foco estrito na ética e integridade acadêmica. "
+            f"Analise o seguinte pedido do estudante: '{tema_usuario}'.\n\n"
+            f"DIRETRIZES OBRIGATÓRIAS DE ESCOPO:\n"
+            f"1. Identifique o formato solicitado pelo usuário (se ele mencionou artigo, TCC, monografia, etc.). Se não especificou, adote o padrão de Artigo Científico.\n"
+            f"2. Você está RIGOROSAMENTE PROIBIDO de escrever textos longos, parágrafos de desenvolvimento, introduções prontas, conclusões prontas ou qualquer conteúdo que o aluno possa copiar e colar direto no trabalho final.\n"
+            f"3. Seu papel é apenas fornecer INSIGHTS E MAPEAMENTO ESTRUTURAL. Se o usuário solicitar explicitamente para você 'escrever o trabalho', 'fazer o capítulo' ou 'redigir', recuse educadamente, explicando brevemente que a redação integral por IA fere a integridade acadêmica e pode caracterizar plágio.\n\n"
+            f"O QUE VOCÊ DEVE GERAR (De forma puramente estrutural e em tópicos):\n"
+            f"a) Formato Identificado (Ex: Artigo, TCC, Monografia);\n"
+            f"b) Sugestão de Título Refinado;\n"
+            f"c) Problema de Pesquisa (pergunta norteadora em uma única frase);\n"
+            f"d) Três Objetivos Específicos (em tópicos curtos começando com verbos no infinitivo);\n"
+            f"e) Sumário Provisório Sugerido (apenas os títulos dos capítulos/seções adequados ao formato, sem texto descritivo).\n\n"
+            f"Mantenha um tom profissional, técnico e pedagógico."
+        )
+        
+        with st.spinner("Analisando o tema e mapeando a estrutura ideal..."):
+            try:
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=PROMPT_METODOLOGIA,
+                    config=types.GenerateContentConfig(
+                        temperature=0.4, # Temperatura mais baixa para ser mais preciso e seguir mais as regras
+                    )
+                )
+                
+                st.markdown("---")
+                st.markdown("### 📋 Proposta Estrutural Obtida")
+                st.write(response.text)
+                st.info("💡 **Como usar este resultado:** Utilize este mapa como base para pesquisar sua doutrina, jurisprudência e iniciar a sua própria escrita de forma autêntica.")
+                
+            except Exception as e:
+                st.error(f"Erro ao processar a estrutura: {e}")
+                
+    elif botao_gerar and not tema_usuario:
+        st.warning("Por favor, digite um tema ou comando antes de clicar em gerar.")
+
     if botao_gerar and tema_usuario:
         PROMPT_METODOLOGIA = (
             f"Você é um orientador acadêmico especialista em metodologia científica jurídica. "
