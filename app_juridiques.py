@@ -108,4 +108,9 @@ if opcao_menu == "💬 Tutor de Inteligência Artificial":
     # Caixa de entrada adaptada para o teclado do celular
     if prompt := st.chat_input("Digite sua dúvida jurídica aqui..."):
         with st.chat_message("user"):
-            st.
+            st.markdown(prompt)
+        st.session_state.messages.append({"role": "user", "content": prompt})
+
+        with st.chat_message("assistant"):
+            message_placeholder = st.empty()
+            try:
