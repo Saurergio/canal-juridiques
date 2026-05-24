@@ -3,46 +3,57 @@ from google import genai
 from google.genai import types
 import os
 
-# Configuração da página web
+# Configuração da página web (Otimizada para Mobile e Computador)
 st.set_page_config(page_title="Canal Juridiquês", page_icon="⚖️", layout="centered")
 
-# 1. ESTILIZAÇÃO CUSTOMIZADA (CSS)
+# 1. ESTILIZAÇÃO CUSTOMIZADA (CSS Totalmente Responsivo)
 st.markdown("""
     <style>
     html, body, [class*="css"] {
         font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     }
     
+    /* Ajuste da Barra Lateral para todos os tamanhos de tela */
     [data-testid="stSidebar"] {
         background-color: #0e1117;
         border-right: 1px solid #c5a059;
     }
 
+    /* Botões grandes, confortáveis e fáceis de tocar no celular */
     div.stButton > button:first-child {
         background-color: #c5a059;
         color: white;
         border-radius: 10px;
         border: none;
+        padding: 12px 20px;
+        width: 100%;
+        font-size: 16px;
         transition: 0.3s;
     }
     div.stButton > button:hover {
         background-color: #a38446;
         color: white;
-        transform: scale(1.02);
+    }
+    
+    /* Ajuste da caixa de seleção para dar destaque */
+    div[data-baseweb="select"] {
+        border: 1px solid #c5a059;
+        border-radius: 8px;
     }
 
+    /* Caixas de chat adaptáveis com bom espaçamento para leitura */
     [data-testid="stChatMessage"] {
         border-radius: 15px;
         background-color: #1e2430;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
+        padding: 14px;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# NOME DO ARQUIVO DA LOGO
 NOME_LOGO = "logo.png"
 
-# MENU LATERAL (A logo fica brilhando aqui!)
+# MENU LATERAL (Se adapta elegantemente no menu hambúrguer do celular)
 with st.sidebar:
     if os.path.exists(NOME_LOGO):
         st.image(NOME_LOGO, use_container_width=True)
@@ -61,63 +72,40 @@ with st.sidebar:
     st.markdown("---")
     st.caption("📢 Espaço para anúncios Google AdSense.")
 
-# CABEÇALHO PRINCIPAL (LIMPO E MINIMALISTA NO CENTRO)
-st.markdown("<h1 style='color: #c5a059; margin-bottom: 0px;'>⚖️ Canal Juridiquês</h1>", unsafe_allow_html=True)
-st.write("*Seu ecossistema acadêmico inteligente.*")
+# CABEÇALHO PRINCIPAL (Centralizado e limpo)
+st.markdown("<h2 style='color: #c5a059; margin-bottom: 0px; text-align: center;'>⚖️ Canal Juridiquês</h2>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'><i>Seu ecossistema acadêmico inteligente.</i></p>", unsafe_allow_html=True)
 st.markdown("---")
 
-# ORGANIZAÇÃO EM ABAS
-tab1, tab2 = st.tabs(["💬 Tutor de IA", "📖 Como Pesquisar"])
+# NAVEGAÇÃO OTIMIZADA PARA DISPOSITIVOS MÓVEIS
+opcao_menu = st.selectbox(
+    "Escolha o que deseja acessar:",
+    ["💬 Tutor de Inteligência Artificial", "📖 Guia de Metodologia de Pesquisa"]
+)
 
-with tab1:
+st.markdown("<br>", unsafe_allow_html=True)
+
+# 1ª OPÇÃO: O CHATBOT INTELIGENTE
+if opcao_menu == "💬 Tutor de Inteligência Artificial":
+    
     PROMPT_SISTEMA = (
         "Você é o 'Tutor Jurídico Acadêmico' do site Canal Juridiquês. Ajude estudantes de Direito. "
         "Seja didático e use formatação limpa. Links: [Compre na Amazon](https://www.amazon.com.br/s?k=NOME_DO_LIVRO&i=books)"
     )
 
+    # Puxa de forma 100% segura a chave salva nos Secrets do Streamlit
     GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
     client = genai.Client(api_key=GEMINI_API_KEY)
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
+    # Mostra o histórico de conversas na tela
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    if prompt := st.chat_input("Em que posso ajudar na sua pesquisa hoje?"):
+    # Caixa de entrada adaptada para o teclado do celular
+    if prompt := st.chat_input("Digite sua dúvida jurídica aqui..."):
         with st.chat_message("user"):
-            st.markdown(prompt)
-        st.session_state.messages.append({"role": "user", "content": prompt})
-
-        with st.chat_message("assistant"):
-            message_placeholder = st.empty()
-            try:
-                history_api = []
-                for m in st.session_state.messages[:-1]:
-                    role_api = "user" if m["role"] == "user" else "model"
-                    history_api.append(types.Content(role=role_api, parts=[types.Part.from_text(text=m["content"])]))
-                
-                chat = client.chats.create(
-                    model="gemini-2.5-flash",
-                    history=history_api,
-                    config=types.GenerateContentConfig(system_instruction=PROMPT_SISTEMA, temperature=0.3)
-                )
-                
-                response = chat.send_message(prompt)
-                message_placeholder.markdown(response.text)
-                st.session_state.messages.append({"role": "assistant", "content": response.text})
-            except Exception as e:
-                message_placeholder.error(f"Erro na conexão: {e}")
-
-with tab2:
-    st.header("Metodologia de Pesquisa")
-    st.info("Aprenda a usar o Canal Juridiquês para acelerar seus estudos.")
-    with st.expander("🔎 Como buscar jurisprudência?"):
-        st.write("Peça ao tutor para criar uma 'string de busca' com os termos AND e OR.")
-    with st.expander("📚 Como estruturar meu TCC?"):
-        st.write("Peça sugestões de 'Problema de Pesquisa' e 'Sumário Provisório'.")
-
-# RODAPÉ
-st.markdown("---")
-st.caption("⚠️ O Canal Juridiquês é uma ferramenta de suporte pedagógico. Não substitui um advogado.")
+            st.
