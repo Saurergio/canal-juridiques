@@ -53,7 +53,7 @@ st.markdown("""
 
 NOME_LOGO = "logo.png"
 
-# MENU LATERAL (Se adapta elegantemente no menu hambúrguer do celular)
+# MENU LATERAL
 with st.sidebar:
     if os.path.exists(NOME_LOGO):
         st.image(NOME_LOGO, use_container_width=True)
@@ -72,7 +72,7 @@ with st.sidebar:
     st.markdown("---")
     st.caption("📢 Espaço para anúncios Google AdSense.")
 
-# CABEÇALHO PRINCIPAL (Centralizado e limpo)
+# CABEÇALHO PRINCIPAL
 st.markdown("<h2 style='color: #c5a059; margin-bottom: 0px; text-align: center;'>⚖️ Canal Juridiquês</h2>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center;'><i>Seu ecossistema acadêmico inteligente.</i></p>", unsafe_allow_html=True)
 st.markdown("---")
@@ -85,31 +85,37 @@ opcao_menu = st.selectbox(
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# 1ª OPÇÃO: O CHATBOT INTELIGENTE
+# Inicialização da API do Gemini de forma segura
+try:
+    GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
+    client = genai.Client(api_key=GEMINI_API_KEY)
+except Exception:
+    st.error("Erro: A chave 'GEMINI_API_KEY' não foi encontrada nos Secrets do Streamlit.")
+    st.stop()
+
+
+# 1ª OPÇÃO: O CHATBOT INTELIGENTE REFINADO
 if opcao_menu == "💬 Tutor de Inteligência Artificial":
     
-    PROMPT_SISTEMA = (
-        "Você é o 'Tutor Jurídico Acadêmico' do site Canal Juridiquês. Seu papel é auxiliar estudantes de Direito de forma clara, precisa e extremamente didática. "
-        "Use formatação limpa (Markdown, negritos e listas). Quando mencionar livros ou materiais, utilize o formato de link padrão do site: [Compre na Amazon](https://www.amazon.com.br/s?k=NOME_DO_LIVRO&i=books)."
+    PROMPT_TUTOR = (
+        "Você é o 'Tutor Jurídico Acadêmico' do portal Canal Juridiquês. Seu papel é auxiliar estudantes de graduação em Direito. "
+        "Adote uma postura didática, acolhedora e altamente profissional. "
+        "Ao explicar conceitos, especialmente de matérias propedêuticas (Introdução ao Estudo do Direito, Teoria Geral do Direito, "
+        "Sociologia Jurídica, Filosofia e Direito Romano), quebre a resposta em três partes logicamente separadas:\n"
+        "1) Conceito Puro (explicado de forma simples e direta, traduzindo termos em latim se houver);\n"
+        "2) Exemplo Prático ou Analogia com o cotidiano moderno;\n"
+        "3) Fundamentação (mencionando brevemente a doutrina tradicional ou a lei relevante).\n"
+        "Use formatação Markdown com negritos e listas para leitura rápida no celular. "
+        "Sempre que sugerir leituras complementares, use o formato: [Compre na Amazon](https://www.amazon.com.br/s?k=NOME_DO_LIVRO&i=books)."
     )
-
-    # Puxa de forma 100% segura a chave salva nos Secrets do Streamlit
-    try:
-        GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
-        client = genai.Client(api_key=GEMINI_API_KEY)
-    except Exception:
-        st.error("Erro: A chave 'GEMINI_API_KEY' não foi encontrada nos Secrets do Streamlit ou é inválida.")
-        st.stop()
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-    # Mostra o histórico de conversas na tela
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    # Caixa de entrada adaptada para o teclado do celular
     if prompt := st.chat_input("Digite sua dúvida jurídica aqui..."):
         with st.chat_message("user"):
             st.markdown(prompt)
@@ -120,7 +126,6 @@ if opcao_menu == "💬 Tutor de Inteligência Artificial":
             full_response = ""
             
             try:
-                # Prepara o histórico no formato esperado pela nova SDK da Google
                 historico_api = []
                 for m in st.session_state.messages[:-1]:
                     role_api = "user" if m["role"] == "user" else "model"
@@ -129,7 +134,6 @@ if opcao_menu == "💬 Tutor de Inteligência Artificial":
                         parts=[types.Part.from_text(text=m["content"])]
                     ))
                 
-                # Executa a chamada em Stream
                 response_stream = client.models.generate_content_stream(
                     model='gemini-2.5-flash',
                     contents=[
@@ -137,26 +141,65 @@ if opcao_menu == "💬 Tutor de Inteligência Artificial":
                         types.Content(role="user", parts=[types.Part.from_text(text=prompt)])
                     ],
                     config=types.GenerateContentConfig(
-                        system_instruction=PROMPT_SISTEMA,
-                        temperature=0.7,
+                        system_instruction=PROMPT_TUTOR,
+                        temperature=0.6,
                     )
                 )
                 
-                # Renderiza o texto dinamicamente na tela
                 for chunk in response_stream:
                     if chunk.text:
                         full_response += chunk.text
                         message_placeholder.markdown(full_response + "▌")
                 
-                # Exibe o resultado final sem o cursor de digitação
                 message_placeholder.markdown(full_response)
                 st.session_state.messages.append({"role": "assistant", "content": full_response})
                 
             except Exception as e:
-                st.error(f"Ocorreu um erro ao processar sua solicitação: {e}")
+                st.error(f"Erro na requisição: {e}")
 
-# 2ª OPÇÃO: GUIA DE METODOLOGIA
+
+# 2ª OPÇÃO: GUIA DE METODOLOGIA INTERATIVO
 elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
-    st.subheader("📖 Guia de Metodologia de Pesquisa")
-    st.write("Bem-vindo ao espaço de apoio à pesquisa científica e TCC do Canal Juridiquês!")
-    st.info("Esta seção está pronta para receber suas diretrizes de artigos, formatação ABNT ou dicas de monografia.")
+    st.subheader("📖 Assistente de Projetos Científicos e TCC")
+    st.write("Está travado na escolha do tema ou na estrutura do seu artigo ou monografia? Deixe a IA estruturar o esqueleto do seu trabalho acadêmico no padrão adequado.")
+    
+    # Campo de entrada para o tema do aluno
+    tema_usuario = st.text_input(
+        "Digite a ideia central ou o tema do seu trabalho:",
+        placeholder="Ex: A eficácia da LGPD na segurança pública"
+    )
+    
+    botao_gerar = st.button("🚀 Gerar Estrutura de TCC")
+    
+    if botao_gerar and tema_usuario:
+        PROMPT_METODOLOGIA = (
+            f"Você é um orientador acadêmico especialista em metodologia científica jurídica. "
+            f"Com base no tema fornecido pelo estudante: '{tema_usuario}', gere uma estrutura inicial de projeto de pesquisa. "
+            f"A sua resposta DEVE conter de forma organizada:\n"
+            f"1) Uma sugestão de Título Refinado;\n"
+            f"2) O Problema de Pesquisa (uma pergunta norteadora clara);\n"
+            f"3) Três Objetivos Específicos;\n"
+            f"4) Uma proposta de Sumário Provisório contendo Introdução, 3 Capítulos de desenvolvimento (focando na revisão bibliográfica histórica/conceitual, debate central e impactos jurídicos) e Conclusão.\n"
+            f"Seja profissional e adote o rigor metodológico técnico."
+        )
+        
+        with st.spinner("Analisando o tema e estruturando capítulos..."):
+            try:
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=PROMPT_METODOLOGIA,
+                    config=types.GenerateContentConfig(
+                        temperature=0.5,
+                    )
+                )
+                
+                st.markdown("---")
+                st.markdown("### 📋 Proposta Metodológica Sugerida")
+                st.write(response.text)
+                st.success("🎯 Dica: Utilize a estrutura acima para iniciar o sumário do seu pré-projeto ou monografia!")
+                
+            except Exception as e:
+                st.error(f"Erro ao gerar o guia: {e}")
+                
+    elif botao_gerar and not tema_usuario:
+        st.warning("Por favor, digite um tema ou palavra-chave antes de gerar a estrutura.")
