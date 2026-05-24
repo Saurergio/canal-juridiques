@@ -75,7 +75,7 @@ with tab1:
         "Seja didático e use formatação limpa. Links: [Compre na Amazon](https://www.amazon.com.br/s?k=NOME_DO_LIVRO&i=books)"
     )
 
-    GEMINI_API_KEY = "AIzaSyDErDZbJSDBNuXMcpx7LNCAmjRA1pw0bZw"
+    GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
     client = genai.Client(api_key=GEMINI_API_KEY)
 
     if "messages" not in st.session_state:
