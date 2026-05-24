@@ -1,3 +1,10 @@
+"""
+Projeto: Canal Juridiquês
+Versão: 1.0.0
+Descrição: Ecossistema acadêmico inteligente com Tutor de IA e Assistente de Metodologia.
+Autoria: Sergio Moreira Neri
+"""
+
 import streamlit as st
 from google import genai
 from google.genai import types
@@ -162,7 +169,6 @@ if opcao_menu == "💬 Tutor de Inteligência Artificial":
 elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
     st.subheader("📖 Assistente de Projetos Científicos e TCC")
     
-    # Alerta ético e legal visível na tela
     st.warning(
         "⚠️ **Diretriz Ética e de Integridade Acadêmica:**\n\n"
         "Esta ferramenta funciona exclusivamente como um **guia de orientação e estrutura conceitual**. "
@@ -173,17 +179,14 @@ elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
     
     st.write("Insira a ideia central do seu projeto para obter um esqueleto metodológico personalizado no padrão acadêmico correto.")
     
-    # Campo de entrada para o tema do aluno
     tema_usuario = st.text_input(
         "Digite a ideia central ou o tema do seu trabalho:",
         placeholder="Ex: A eficácia da LGPD na segurança pública"
     )
     
-    # Botão de execução
     botao_gerar = st.button("🚀 Gerar Estrutura Acadêmica")
     
     if botao_gerar and tema_usuario:
-        # Prompt robusto com limitadores rígidos de escopo e política anti-plágio
         PROMPT_METODOLOGIA = (
             f"Você é um orientador acadêmico especialista em metodologia científica jurídica, com foco estrito na ética e integridade acadêmica. "
             f"Analise o seguinte pedido do estudante: '{tema_usuario}'.\n\n"
@@ -206,7 +209,7 @@ elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
                     model='gemini-2.5-flash',
                     contents=PROMPT_METODOLOGIA,
                     config=types.GenerateContentConfig(
-                        temperature=0.4, # Temperatura mais baixa para ser mais preciso e seguir mais as regras
+                        temperature=0.4,
                     )
                 )
                 
@@ -220,36 +223,3 @@ elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
                 
     elif botao_gerar and not tema_usuario:
         st.warning("Por favor, digite um tema ou comando antes de clicar em gerar.")
-
-    if botao_gerar and tema_usuario:
-        PROMPT_METODOLOGIA = (
-            f"Você é um orientador acadêmico especialista em metodologia científica jurídica. "
-            f"Com base no tema fornecido pelo estudante: '{tema_usuario}', gere uma estrutura inicial de projeto de pesquisa. "
-            f"A sua resposta DEVE conter de forma organizada:\n"
-            f"1) Uma sugestão de Título Refinado;\n"
-            f"2) O Problema de Pesquisa (uma pergunta norteadora clara);\n"
-            f"3) Três Objetivos Específicos;\n"
-            f"4) Uma proposta de Sumário Provisório contendo Introdução, 3 Capítulos de desenvolvimento (focando na revisão bibliográfica histórica/conceitual, debate central e impactos jurídicos) e Conclusão.\n"
-            f"Seja profissional e adote o rigor metodológico técnico."
-        )
-        
-        with st.spinner("Analisando o tema e estruturando capítulos..."):
-            try:
-                response = client.models.generate_content(
-                    model='gemini-2.5-flash',
-                    contents=PROMPT_METODOLOGIA,
-                    config=types.GenerateContentConfig(
-                        temperature=0.5,
-                    )
-                )
-                
-                st.markdown("---")
-                st.markdown("### 📋 Proposta Metodológica Sugerida")
-                st.write(response.text)
-                st.success("🎯 Dica: Utilize a estrutura acima para iniciar o sumário do seu pré-projeto ou monografia!")
-                
-            except Exception as e:
-                st.error(f"Erro ao gerar o guia: {e}")
-                
-    elif botao_gerar and not tema_usuario:
-        st.warning("Por favor, digite um tema ou palavra-chave antes de gerar a estrutura.")
