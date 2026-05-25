@@ -1,7 +1,7 @@
 """
 Projeto: Canal Juridiquês
-Versão: 1.0.5
-Descrição: Ecossistema acadêmico inteligente com Tutor, Metodologia, Vade Mecum, Simulador, Dicionário e Fale Conosco.
+Versão: 1.1.0
+Descrição: Ecossistema acadêmico inteligente com Tutor de IA, Guia de Metodologia e Gerador de Simulados.
 Autoria: Sergio Moreira Neri
 """
 
@@ -13,7 +13,7 @@ import os
 # Configuração da página web (Otimizada para Mobile e Computador)
 st.set_page_config(page_title="Canal Juridiquês", page_icon="⚖️", layout="centered")
 
-# 1. ESTILIZAÇÃO CUSTOMIZADA (CSS Totalmente Responsivo)
+# 1. ESTILIZAÇÃO CUSTOMIZADA (CSS Responsivo + Configuração de Impressão)
 st.markdown("""
     <style>
     html, body, [class*="css"] {
@@ -48,12 +48,27 @@ st.markdown("""
         border-radius: 8px;
     }
 
-    /* Caixas de chat adaptáveis com bom espaçamento para leitura */
+    /* Caixas de chat adaptáveis */
     [data-testid="stChatMessage"] {
         border-radius: 15px;
         background-color: #1e2430;
         margin-bottom: 12px;
         padding: 14px;
+    }
+
+    /* REGRAS DE IMPRESSÃO: Esconde menus para gerar um PDF limpo se o usuário mandar imprimir a página */
+    @media print {
+        [data-testid="stSidebar"], 
+        header, 
+        footer, 
+        .stActionButton,
+        div.stButton {
+            display: none !important;
+        }
+        .main .block-container {
+            max-width: 100% !important;
+            padding: 0px !important;
+        }
     }
     </style>
     """, unsafe_allow_html=True)
@@ -72,17 +87,13 @@ with st.sidebar:
     
     st.header("📚 Indicações")
     st.write("Apoie o nosso projeto gratuito utilizando os links dos nossos parceiros!")
-    
     st.markdown("### 📙 Vade Mecum Atualizado")
     st.link_button("👉 Ver na Amazon Brasil", "https://www.amazon.com.br/s?k=vade+mecum&i=books")
-    
     st.markdown("---")
     
-    # SEÇÃO: FALE CONOSCO
     st.header("📬 Fale Conosco")
-    st.write("Dúvidas, sugestões ou problemas com a plataforma? Entre em contato conosco.")
+    st.write("Dúvidas, sugestões ou problemas?")
     st.link_button("📧 Enviar E-mail", "mailto:contato@canaljuridiques.com.br")
-    
     st.markdown("---")
     st.caption("📢 Espaço para anúncios Google AdSense.")
 
@@ -91,32 +102,29 @@ st.markdown("<h2 style='color: #c5a059; margin-bottom: 0px; text-align: center;'
 st.markdown("<p style='text-align: center;'><i>Seu ecossistema acadêmico inteligente.</i></p>", unsafe_allow_html=True)
 st.markdown("---")
 
-# NAVEGAÇÃO DO MENU ATUALIZADA (VERSÃO 1.0.5)
+# NAVEGAÇÃO PRINCIPAL (Agora com 3 opções)
 opcao_menu = st.selectbox(
     "Escolha o que deseja acessar:",
     [
         "💬 Tutor de Inteligência Artificial", 
         "📖 Guia de Metodologia de Pesquisa",
-        "📜 Consulta à Legislação e Letra da Lei",
-        "🧠 Simulador de Questões e Simulado",
-        "📖 Dicionário de Termos e Latim"
+        "📝 Gerador de Simulados Acadêmicos"
     ]
 )
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# Inicialização da API do Gemini de forma segura
+# Inicialização da API do Gemini
 try:
     GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
     client = genai.Client(api_key=GEMINI_API_KEY)
 except Exception:
-    st.error("Erro: A chave 'GEMINI_API_KEY' não foi encontrada nos Secrets do Streamlit.")
+    st.error("Erro: A chave 'GEMINI_API_KEY' não foi encontrada nos Secrets.")
     st.stop()
 
 
-# 1ª OPÇÃO: O CHATBOT INTELIGENTE REFINADO
+# 1ª OPÇÃO: TUTOR DE IA
 if opcao_menu == "💬 Tutor de Inteligência Artificial":
-    
     PROMPT_TUTOR = (
         "Você é o 'Tutor Jurídico Acadêmico' do portal Canal Juridiquês. Seu papel é auxiliar estudantes de graduação em Direito. "
         "Adote uma postura didática, acolhedora e altamente profissional. "
@@ -125,8 +133,7 @@ if opcao_menu == "💬 Tutor de Inteligência Artificial":
         "1) Conceito Puro (explicado de forma simples e direta, traduzindo termos em latim se houver);\n"
         "2) Exemplo Prático ou Analogia com o cotidiano moderno;\n"
         "3) Fundamentação (mencionando brevemente a doutrina tradicional ou a lei relevante).\n"
-        "Use formatação Markdown com negritos e listas para leitura rápida no celular. "
-        "Sempre que sugerir leituras complementares, use o formato: [Compre na Amazon](https://www.amazon.com.br/s?k=NOME_DO_LIVRO&i=books)."
+        "Use formatação Markdown com negritos e listas para leitura rápida no celular."
     )
 
     if "messages" not in st.session_state:
@@ -144,229 +151,114 @@ if opcao_menu == "💬 Tutor de Inteligência Artificial":
         with st.chat_message("assistant"):
             message_placeholder = st.empty()
             full_response = ""
-            
             try:
                 historico_api = []
                 for m in st.session_state.messages[:-1]:
                     role_api = "user" if m["role"] == "user" else "model"
-                    historico_api.append(types.Content(
-                        role=role_api,
-                        parts=[types.Part.from_text(text=m["content"])]
-                    ))
+                    historico_api.append(types.Content(role=role_api, parts=[types.Part.from_text(text=m["content"])]))
                 
                 response_stream = client.models.generate_content_stream(
                     model='gemini-2.5-flash',
-                    contents=[
-                        *historico_api,
-                        types.Content(role="user", parts=[types.Part.from_text(text=prompt)])
-                    ],
-                    config=types.GenerateContentConfig(
-                        system_instruction=PROMPT_TUTOR,
-                        temperature=0.6,
-                    )
+                    contents=[*historico_api, types.Content(role="user", parts=[types.Part.from_text(text=prompt)])],
+                    config=types.GenerateContentConfig(system_instruction=PROMPT_TUTOR, temperature=0.6)
                 )
-                
                 for chunk in response_stream:
                     if chunk.text:
                         full_response += chunk.text
                         message_placeholder.markdown(full_response + "▌")
-                
                 message_placeholder.markdown(full_response)
                 st.session_state.messages.append({"role": "assistant", "content": full_response})
-                
             except Exception as e:
                 st.error(f"Erro na requisição: {e}")
 
 
-# 2ª OPÇÃO: GUIA DE METODOLOGIA INTERATIVO (Protegido contra plágio)
+# 2ª OPÇÃO: GUIA DE METODOLOGIA (Protegido contra plágio)
 elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
     st.subheader("📖 Assistente de Projetos Científicos e TCC")
-    
     st.warning(
         "⚠️ **Diretriz Ética e de Integridade Acadêmica:**\n\n"
         "Esta ferramenta funciona exclusivamente como um **guia de orientação e estrutura conceitual**. "
-        "A IA **não redigirá** o conteúdo do seu trabalho (parágrafos, capítulos ou introduções), "
-        "evitando práticas que configurem plágio ou violação de direitos autorais. "
-        "A autoria e o desenvolvimento do texto científico são de responsabilidade exclusiva do estudante."
+        "A IA **não redigirá** o conteúdo do seu trabalho."
     )
-    
-    st.write("Insira a ideia central do seu projeto para obter um esqueleto metodológico personalizado no padrão acadêmico correto.")
-    
-    tema_usuario = st.text_input(
-        "Digite a ideia central ou o tema do seu trabalho:",
-        placeholder="Ex: A eficácia da LGPD na segurança pública"
-    )
-    
+    tema_usuario = st.text_input("Digite a ideia central ou o tema do seu trabalho:", placeholder="Ex: A eficácia da LGPD na segurança pública")
     botao_gerar = st.button("🚀 Gerar Estrutura Acadêmica")
     
     if botao_gerar and tema_usuario:
         PROMPT_METODOLOGIA = (
-            f"Você é um orientador acadêmico especialista em metodologia científica jurídica, com foco estrito na ética e integridade acadêmica. "
-            f"Analise o seguinte pedido do estudante: '{tema_usuario}'.\n\n"
-            f"DIRETRIZES OBRIGATÓRIAS DE ESCOPO:\n"
-            f"1. Identifique o formato solicitado pelo usuário (se ele mencionou artigo, TCC, monografia, etc.). Se não especificou, adote o padrão de Artigo Científico.\n"
-            f"2. Você está RIGOROSAMENTE PROIBIDO de escrever textos longos, parágrafos de desenvolvimento, introduções prontas, conclusões prontas ou qualquer conteúdo que o aluno possa copiar e colar direto no trabalho final.\n"
-            f"3. Seu papel é apenas fornecer INSIGHTS E MAPEAMENTO ESTRUTURAL. Se o usuário solicitar explicitamente para você 'escrever o trabalho', 'fazer o capítulo' ou 'redigir', recuse educadamente, explicando brevemente que a redação integral por IA fere a integridade acadêmica e pode caracterizar plágio.\n\n"
-            f"O QUE VOCÊ DEVE GERAR (De forma puramente estrutural e em tópicos):\n"
-            f"a) Formato Identificado (Ex: Artigo, TCC, Monografia);\n"
-            f"b) Sugestão de Título Refinado;\n"
-            f"c) Problema de Pesquisa (pergunta norteadora em uma única frase);\n"
-            f"d) Três Objetivos Específicos (em tópicos curtos começando com verbos no infinitivo);\n"
-            f"e) Sumário Provisório Sugerido (apenas os títulos dos capítulos/seções adequados ao formato, sem texto descritivo).\n\n"
-            f"Mantenha um tom profissional, técnico e pedagógico."
+            f"Você é um orientador acadêmico especialista em metodologia científica jurídica. Analise o tema: '{tema_usuario}'.\n"
+            f"Gere estritamente em tópicos: a) Formato Ideal; b) Título Sugerido; c) Problema de Pesquisa; d) Três Objetivos Específicos; e) Sumário estrutural sugerido. Proibido escrever textos longos."
         )
-        
-        with st.spinner("Analisando o tema e mapeando a estrutura ideal..."):
+        with st.spinner("Mapeando a estrutura ideal..."):
             try:
                 response = client.models.generate_content(
                     model='gemini-2.5-flash',
                     contents=PROMPT_METODOLOGIA,
-                    config=types.GenerateContentConfig(
-                        temperature=0.4,
-                    )
-                )
-                
-                st.markdown("---")
-                st.markdown("### 📋 Proposta Estrutural Obtida")
-                st.write(response.text)
-                st.info("💡 **Como usar este resultado:** Utilize este mapa como base para pesquisar sua doutrina, jurisprudência e iniciar a sua própria escrita de forma autêntica.")
-                
-            except Exception as e:
-                st.error(f"Erro ao processar a estrutura: {e}")
-                
-    elif botao_gerar and not tema_usuario:
-        st.warning("Por favor, digite um tema ou comando antes de clicar em gerar.")
-
-
-# 3ª OPÇÃO: CONSULTA DE LEGISLAÇÃO (Otimizada com Busca do Google em Tempo Real)
-elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
-    st.subheader("📜 Extrator da Letra da Lei")
-    st.write("Consulte o texto exato de artigos de Leis, Códigos ou da Constituição Federal utilizando busca em tempo real.")
-    
-    pedido_lei = st.text_input(
-        "Qual lei ou artigo específico você precisa consultar?",
-        placeholder="Ex: Artigo 5 da CF / Lei da LGPD / Artigo 1 da LGPD"
-    )
-    
-    botao_buscar = st.button("🔍 Buscar Texto Literal")
-    
-    if botao_buscar and pedido_lei:
-        PROMPT_LEGISLACAO = (
-            f"Você é o 'Consultor de Legislação Oficial' do Canal Juridiquês. Sua única missão é extrair e apresentar de forma clara "
-            f"o texto literal da norma jurídica solicitada pelo usuário: '{pedido_lei}'.\n\n"
-            f"INSTRUÇÕES DE EXECUÇÃO:\n"
-            f"1. Você tem acesso à ferramenta de busca do Google. Utilize-a para encontrar o texto exato diretamente em fontes confiáveis (como os portais do Planalto, Senado ou sites institucionais).\n"
-            f"2. Identifique claramente o nome oficial e o número da norma no topo.\n"
-            f"3. Transcreva fielmente o caput, parágrafos ou incisos solicitados pelo usuário utilizando blocos de citação do Markdown para leitura rápida no celular.\n"
-            f"4. Não faça análises ou comentários longos. O foco absoluto é entregar o texto seco da lei de forma rápida e precisa."
-        )
-        
-        with st.spinner("Buscando texto oficial atualizado..."):
-            try:
-                response = client.models.generate_content(
-                    model='gemini-2.5-flash',
-                    contents=PROMPT_LEGISLACAO,
-                    config=types.GenerateContentConfig(
-                        temperature=0.3,
-                        tools=[{"google_search": {}}],
-                    )
-                )
-                
-                st.markdown("---")
-                st.markdown("### 🏛️ Texto Legal Encontrado")
-                st.write(response.text)
-                st.success("✔ Conteúdo sincronizado com fontes oficiais da legislação brasileira.")
-                
-            except Exception as e:
-                st.error(f"Erro ao buscar o texto legal: {e}")
-                
-    elif botao_buscar and not pedido_lei:
-        st.warning("Por favor, informe o artigo ou lei que deseja ler.")
-
-
-# 4ª OPÇÃO: SIMULADOR DE QUESTÕES (NOVO)
-elif opcao_menu == "🧠 Simulador de Questões e Simulado":
-    st.subheader("🧠 Simulado de Fixação Acadêmica")
-    st.write("Teste seus conhecimentos em disciplinas jurídicas chaves. Escolha a matéria abaixo para gerar uma questão de múltipla escolha inédita padrão OAB/Banca.")
-    
-    materia_escolhida = st.selectbox(
-        "Selecione a matéria que deseja treinar:",
-        ["Introdução ao Estudo do Direito (IED)", "Direito Constitucional", "Teoria Geral do Direito", "Direito Penal", "Sociologia Jurídica"]
-    )
-    
-    botao_questao = st.button("🎯 Gerar Nova Questão")
-    
-    # Armazena a questão gerada no estado da sessão para não sumir ao clicar no botão de revelar gabarito
-    if botao_questao:
-        PROMPT_QUESTOES = (
-            f"Você é um docente de Direito especialista na elaboração de exames da OAB e ENADE. "
-            f"Gere uma questão inédita de múltipla escolha sobre a matéria: '{materia_escolhida}'.\n\n"
-            f"A estrutura da resposta deve conter obrigatoriamente:\n"
-            f"1) Um enunciado baseado em um caso prático ou problema teórico acadêmico;\n"
-            f"2) Quatro alternativas de resposta rotuladas de A até D;\n"
-            f"3) Abaixo de tudo, adicione uma linha divisória com traços '---' e escreva o GABARITO COMENTADO de cada alternativa de forma detalhada, indicando qual é a correta e o porquê."
-        )
-        
-        with st.spinner("Estruturando questão inédita..."):
-            try:
-                response = client.models.generate_content(
-                    model='gemini-2.5-flash',
-                    contents=PROMPT_QUESTOES,
-                    config=types.GenerateContentConfig(temperature=0.7)
-                )
-                # Separa a resposta entre a Questão e o Gabarito com base no divisor '---'
-                partes = response.text.split("---")
-                st.session_state.txt_questao = partes[0]
-                st.session_state.txt_gabarito = partes[1] if len(partes) > 1 else "Gabarito indisponível para esta questão."
-            except Exception as e:
-                st.error(f"Erro ao processar o simulador: {e}")
-                
-    # Exibe a questão se ela já tiver sido gerada
-    if "txt_questao" in st.session_state:
-        st.markdown("---")
-        st.markdown("### 📝 Questão Proposta")
-        st.write(st.session_state.txt_questao)
-        
-        # Sistema interativo antifrustração: o aluno só abre o gabarito se acionar o switch
-        mostrar_gabarito = st.toggle("👁️ Revelar Resposta e Gabarito Comentado")
-        if mostrar_gabarito:
-            st.info(st.session_state.txt_gabarito)
-
-
-# 5ª OPÇÃO: DICIONÁRIO JURÍDICO (NOVO)
-elif opcao_menu == "📖 Dicionário de Termos e Latim":
-    st.subheader("📖 Dicionário de Juridiquês e Latim")
-    st.write("Digite termos técnicos, expressões em latim ou brocardos jurídicos para descobrir o significado exato no ordenamento brasileiro.")
-    
-    termo_pesquisa = st.text_input(
-        "Qual palavra ou jargão em latim deseja traduzir?",
-        placeholder="Ex: In dubio pro reo / Pacta sunt servanda / Erga omnes"
-    )
-    
-    botao_dicionario = st.button("📚 Consultar Dicionário")
-    
-    if botao_dicionario and termo_pesquisa:
-        PROMPT_DICIONARIO = (
-            f"Você é um lexicógrafo jurídico renomado especialista em termos jurídicos e latim forense. "
-            f"Analise a expressão ou palavra informada pelo aluno: '{termo_pesquisa}'.\n\n"
-            f"Forneça um verbete de dicionário claro contendo:\n"
-            f"1) Tradução Literal (se for do latim) ou Significado Direto;\n"
-            f"2) Contexto Acadêmico (como e onde essa expressão é aplicada no Direito moderno);\n"
-            f"3) Um exemplo de frase ou cenário prático onde esse termo é comumente empregado nas petições ou decisões."
-        )
-        
-        with st.spinner("Buscando significado no repositório lexicográfico..."):
-            try:
-                response = client.models.generate_content(
-                    model='gemini-2.5-flash',
-                    contents=PROMPT_DICIONARIO,
                     config=types.GenerateContentConfig(temperature=0.4)
                 )
                 st.markdown("---")
-                st.markdown(f"### 🔍 Significado de: *{termo_pesquisa}*")
+                st.markdown("### 📋 Proposta Estrutural Obtida")
                 st.write(response.text)
             except Exception as e:
-                st.error(f"Erro ao processar o dicionário: {e}")
+                st.error(f"Erro ao processar a estrutura: {e}")
+
+
+# 3ª OPÇÃO: GERADOR DE SIMULADOS ACADÊMICOS (Nova Ferramenta Interativa)
+elif opcao_menu == "📝 Gerador de Simulados Acadêmicos":
+    st.subheader("📝 Gerador de Simulados e Questões de Fixação")
+    st.write("Monte um caderno de questões personalizado para testar seus conhecimentos ou gerar material para revisão impresso.")
+
+    # Opções do Simulado agrupadas de forma elegante
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        materia = st.selectbox("Selecione a Matéria:", ["Teoria Geral do Direito", "Introdução ao Estudo do Direito", "Sociologia Jurídica", "Direito Romano"])
+    with col2:
+        qtd_questoes = st.slider("Quantidade:", min_value=1, max_value=5, value=3)
+    with col3:
+        tipo_questao = st.selectbox("Tipo de Questões:", ["Múltipla Escolha", "Dissertativa", "Mesclada"])
+
+    btn_simulado = st.button("🎯 Gerar Caderno de Questões")
+
+    if btn_simulado:
+        PROMPT_SIMULADO = (
+            f"Você é um renomado Professor e Coordenador de Exames Acadêmicos de Direito. "
+            f"Gere um caderno contendo exatamente {qtd_questoes} questões de nível universitário sobre a matéria: '{materia}'.\n"
+            f"O tipo de questão deve ser: {tipo_questao}.\n\n"
+            f"REGRAS DE FORMATO RIGOROSAS:\n"
+            f"1. Divida sua resposta em duas grandes seções perfeitamente identificáveis:\n"
+            f"   Use a hashtag '### 📝 CADERNO DE QUESTÕES' para listar as perguntas.\n"
+            f"   Use a hashtag '### 🔑 GABARITO COMENTADO OFICIAL' no final da resposta para colocar as respostas.\n"
+            f"2. Se for Múltipla Escolha, coloque 4 alternativas (A, B, C, D).\n"
+            f"3. Se for Dissertativa, inclua um pequeno critério de correção esperado no gabarito.\n"
+            f"4. Faça enunciados ricos, baseados em casos hipotéticos ou debates doutrinários modernos (Ex: vigência vs eficácia, positivismo vs jusnaturalismo).\n\n"
+            f"Mantenha um alto rigor acadêmico."
+        )
+
+        with st.spinner("Elaborando questões inéditas e estruturando gabarito..."):
+            try:
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=PROMPT_SIMULADO,
+                    config=types.GenerateContentConfig(temperature=0.6)
+                )
                 
-    elif botao_dicionario and not termo_pesquisa:
-        st.warning("Por favor, digite um termo para realizar a busca.")
+                # Salva o resultado no estado da sessão para não sumir ao clicar em outros botões
+                st.session_state.resultado_simulado = response.text
+            except Exception as e:
+                st.error(f"Erro ao gerar o simulado: {e}")
+
+    # Se o simulado já foi gerado, exibe na tela com os recursos adicionais
+    if "resultado_simulado" in st.session_state:
+        st.markdown("---")
+        st.markdown(st.session_state.resultado_simulado)
+        
+        st.markdown("---")
+        st.subheader("🖨️ Opções de Exportação")
+        st.write("Use o botão abaixo para abrir a tela de impressão. Você pode selecionar a opção **'Salvar como PDF'** nas configurações da sua impressora para guardar o arquivo digitalmente.")
+        
+        # Botão JavaScript que aciona a impressão nativa do dispositivo (Mobile ou Desktop)
+        st.markdown(
+            '<button onclick="window.print()" style="background-color: #c5a059; color: white; border-radius: 10px; border: none; padding: 12px 20px; width: 100%; font-size: 16px; cursor: pointer;">'
+            '🖨️ Imprimir ou Salvar Simulado como PDF'
+            '</button>',
+            unsafe_allow_html=True
+        )
