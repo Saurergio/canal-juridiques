@@ -1,7 +1,7 @@
 """
 Projeto: Canal Juridiquês
-Versão: 1.0.2
-Descrição: Ecossistema acadêmico inteligente com Tutor, Assistente de Metodologia, Consulta de Legislação e Fale Conosco.
+Versão: 1.0.3
+Descrição: Ecossistema acadêmico inteligente com Tutor, Assistente de Metodologia, Consulta de Legislação (Corrigido) e Fale Conosco.
 Autoria: Sergio Moreira Neri
 """
 
@@ -91,7 +91,7 @@ st.markdown("<h2 style='color: #c5a059; margin-bottom: 0px; text-align: center;'
 st.markdown("<p style='text-align: center;'><i>Seu ecossistema acadêmico inteligente.</i></p>", unsafe_allow_html=True)
 st.markdown("---")
 
-# NAVEGAÇÃO OTIMIZADA - ATUALIZADA COM A TERCEIRA OPÇÃO
+# NAVEGAÇÃO DO MENU
 opcao_menu = st.selectbox(
     "Escolha o que deseja acessar:",
     [
@@ -120,7 +120,7 @@ if opcao_menu == "💬 Tutor de Inteligência Artificial":
         "Adote uma postura didática, acolhedora e altamente profissional. "
         "Ao explicar conceitos, especialmente de matérias propedêuticas (Introdução ao Estudo do Direito, Teoria Geral do Direito, "
         "Sociologia Jurídica, Filosofia e Direito Romano), quebre a resposta em três partes logicamente separadas:\n"
-        "1) Conceito Puro (explicado de forma simples e direta, traduzindo termos em latim se houver);\n"
+        "1) Concepto Puro (explicado de forma simples e direta, traduzindo termos em latim se houver);\n"
         "2) Exemplo Prático ou Analogia com o cotidiano moderno;\n"
         "3) Fundamentação (mencionando brevemente a doutrina tradicional ou a lei relevante).\n"
         "Use formatação Markdown com negritos e listas para leitura rápida no celular. "
@@ -204,7 +204,7 @@ elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
             f"DIRETRIZES OBRIGATÓRIAS DE ESCOPO:\n"
             f"1. Identifique o formato solicitado pelo usuário (se ele mencionou artigo, TCC, monografia, etc.). Se não especificou, adote o padrão de Artigo Científico.\n"
             f"2. Você está RIGOROSAMENTE PROIBIDO de escrever textos longos, parágrafos de desenvolvimento, introduções prontas, conclusões prontas ou qualquer conteúdo que o aluno possa copiar e colar direto no trabalho final.\n"
-            f"3. Seu papel é apenas fornecer INSIGHTS E MAPEAMENTO ESTRUTURAL. Se o usuário solicitar explicitamente para você 'escrever o trabalho', 'fazer o capítulo' ou 'redigir', recuse educadamente, explicando brevemente que a redação integral por IA fere a integridade acadêmica e pode caracterizar plágio.\n\n"
+            f"3. Seu papel é apenas fornecer INSIGHTS E MAPEAMENTO ESTRUTURAL. Se o usuário solicitar explicitamente para você 'escrever o trabalho', 'fazer o capítulo' ou 'redigir', recuse educadamente, explaining brevemente que a redação integral por IA fere a integridade acadêmica e pode caracterizar plágio.\n\n"
             f"O QUE VOCÊ DEVE GERAR (De forma puramente estrutural e em tópicos):\n"
             f"a) Formato Identificado (Ex: Artigo, TCC, Monografia);\n"
             f"b) Sugestão de Título Refinado;\n"
@@ -236,38 +236,41 @@ elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
         st.warning("Por favor, digite um tema ou comando antes de clicar em gerar.")
 
 
-# 3ª OPÇÃO: CONSULTA DE LEGISLAÇÃO (Letra da Lei Otimizada)
+# 3ª OPÇÃO: CONSULTA DE LEGISLAÇÃO (Otimizada e Inteligente para Siglas)
 elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
     st.subheader("📜 Extrator da Letra da Lei")
-    st.write("Consulte o texto exato e literal de artigos de Leis, Códigos ou da Constituição Federal para fundamentar seus estudos.")
+    st.write("Consulte o texto exato e literal de artigos de Leis, Códigos ou da Constituição Federal.")
     
     pedido_lei = st.text_input(
-        "Qual lei ou artigo específico você precisa consultar?",
-        placeholder="Ex: Artigo 5, inciso LVII da Constituição"
+        "Qual lei, sigla ou artigo específico você precisa consultar?",
+        placeholder="Ex: Artigo 1 da LGPD / Artigo 5 da CF / Código Civil art 422"
     )
     
     botao_buscar = st.button("🔍 Buscar Texto Literal")
     
     if botao_buscar and pedido_lei:
         PROMPT_LEGISLACAO = (
-            f"Você é o 'Consultor de Legislação Factual' do Canal Juridiquês. Sua missão única é trazer o texto LITERAL E INTEGRAL da norma jurídica "
+            f"Você é o 'Consultor de Legislação Factual' do Canal Juridiquês. Sua missão absoluta é transcrever o texto LITERAL E INTEGRAL da norma jurídica "
             f"solicitada pelo usuário: '{pedido_lei}'.\n\n"
-            f"REGRAS DE RESPOSTA:\n"
-            f"1. Apresente primeiro o nome oficial da norma (Ex: Constituição Federal de 1988, Código Civil, Lei nº 13.709/18 - LGPD).\n"
-            f"2. Transcreva fielmente a 'Letra da Lei' (Caput, incisos, parágrafos ou alíneas solicitadas) dentro de um bloco de citação limpo.\n"
-            f"3. Se o usuário pediu um artigo inteiro, traga o caput e seus desdobramentos diretos.\n"
-            f"4. ATENÇÃO: Seja estritamente factual. Não invente, não altere palavras da lei e não faça comentários doutrinários longos aqui. O foco é a transcrição fiel para estudo de Vade Mecum.\n"
-            f"5. Se não tiver certeza absoluta do texto exato de algum inciso específico, avise que há necessidade de dupla checagem e traga o escopo geral."
+            f"MILARES DE MAPEAMENTO (INSTRUÇÃO CRÍTICA):\n"
+            f"- Se o usuário citar 'LGPD', entenda IMEDIATAMENTE como a Lei nº 13.709/2018 (Lei Geral de Proteção de Dados Pessoais).\n"
+            f"- Se o usuário citar 'CDC', entenda como a Lei nº 8.078/1990 (Código de Defesa do Consumidor).\n"
+            f"- Se o usuário citar 'CF' ou 'Constituição', entenda como a Constituição Federal de 1988.\n"
+            f"- Se o usuário não disser o artigo, mas pedir 'a lei da LGPD' ou similar, traga os primeiros artigos principais (Art. 1º ao Art. 3º) como amostragem literal.\n\n"
+            f"DIRETRIZES DE FORMATAÇÃO:\n"
+            f"1. Identifique no topo o nome oficial completo da norma jurídica mapeada.\n"
+            f"2. Transcreva fielmente os artigos, caputs, parágrafos, incisos ou alíneas sem pular palavras e sem inventar termos.\n"
+            f"3. Não faça comentários longos ou análises doutrinárias nesta seção. O aluno quer ler a letra seca e fria da lei.\n"
+            f"4. Use blocos de citação ou formatação limpa em Markdown."
         )
         
         with st.spinner("Localizando texto oficial no Vade Mecum digital..."):
             try:
-                # Usamos uma temperatura baixíssima (0.1 ou 0.2) para que a IA seja o mais literal possível e não "invente" ou alucine palavras
                 response = client.models.generate_content(
                     model='gemini-2.5-flash',
                     contents=PROMPT_LEGISLACAO,
                     config=types.GenerateContentConfig(
-                        temperature=0.2,
+                        temperature=0.2, # Mantido baixo para precisão, mas com prompt blindado contra travamentos
                     )
                 )
                 
@@ -275,7 +278,6 @@ elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
                 st.markdown("### 🏛️ Texto Legal Transcrito")
                 st.write(response.text)
                 
-                # Link útil institucional para proteção do usuário
                 st.info(
                     "⚖️ **Nota de Atualização:** A legislação brasileira sofre modificações frequentes. "
                     "Para conferência final e verificação de revogações em tempo real, consulte sempre os portais oficiais do [Planalto](https://www.planalto.gov.br) ou do [Senado Federal](https://www.senado.leg.br)."
