@@ -1,7 +1,7 @@
 """
 Projeto: Canal Juridiquês
-Versão: 1.0.0
-Descrição: Ecossistema acadêmico inteligente com Tutor de IA e Assistente de Metodologia.
+Versão: 1.0.2
+Descrição: Ecossistema acadêmico inteligente com Tutor, Assistente de Metodologia, Consulta de Legislação e Fale Conosco.
 Autoria: Sergio Moreira Neri
 """
 
@@ -77,6 +77,13 @@ with st.sidebar:
     st.link_button("👉 Ver na Amazon Brasil", "https://www.amazon.com.br/s?k=vade+mecum&i=books")
     
     st.markdown("---")
+    
+    # SEÇÃO: FALE CONOSCO
+    st.header("📬 Fale Conosco")
+    st.write("Dúvidas, sugestões ou problemas com a plataforma? Entre em contato conosco.")
+    st.link_button("📧 Enviar E-mail", "mailto:contato@canaljuridiques.com.br")
+    
+    st.markdown("---")
     st.caption("📢 Espaço para anúncios Google AdSense.")
 
 # CABEÇALHO PRINCIPAL
@@ -84,10 +91,14 @@ st.markdown("<h2 style='color: #c5a059; margin-bottom: 0px; text-align: center;'
 st.markdown("<p style='text-align: center;'><i>Seu ecossistema acadêmico inteligente.</i></p>", unsafe_allow_html=True)
 st.markdown("---")
 
-# NAVEGAÇÃO OTIMIZADA PARA DISPOSITIVOS MÓVEIS
+# NAVEGAÇÃO OTIMIZADA - ATUALIZADA COM A TERCEIRA OPÇÃO
 opcao_menu = st.selectbox(
     "Escolha o que deseja acessar:",
-    ["💬 Tutor de Inteligência Artificial", "📖 Guia de Metodologia de Pesquisa"]
+    [
+        "💬 Tutor de Inteligência Artificial", 
+        "📖 Guia de Metodologia de Pesquisa",
+        "📜 Consulta à Legislação e Letra da Lei"
+    ]
 )
 
 st.markdown("<br>", unsafe_allow_html=True)
@@ -223,3 +234,55 @@ elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
                 
     elif botao_gerar and not tema_usuario:
         st.warning("Por favor, digite um tema ou comando antes de clicar em gerar.")
+
+
+# 3ª OPÇÃO: CONSULTA DE LEGISLAÇÃO (Letra da Lei Otimizada)
+elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
+    st.subheader("📜 Extrator da Letra da Lei")
+    st.write("Consulte o texto exato e literal de artigos de Leis, Códigos ou da Constituição Federal para fundamentar seus estudos.")
+    
+    pedido_lei = st.text_input(
+        "Qual lei ou artigo específico você precisa consultar?",
+        placeholder="Ex: Artigo 5, inciso LVII da Constituição"
+    )
+    
+    botao_buscar = st.button("🔍 Buscar Texto Literal")
+    
+    if botao_buscar and pedido_lei:
+        PROMPT_LEGISLACAO = (
+            f"Você é o 'Consultor de Legislação Factual' do Canal Juridiquês. Sua missão única é trazer o texto LITERAL E INTEGRAL da norma jurídica "
+            f"solicitada pelo usuário: '{pedido_lei}'.\n\n"
+            f"REGRAS DE RESPOSTA:\n"
+            f"1. Apresente primeiro o nome oficial da norma (Ex: Constituição Federal de 1988, Código Civil, Lei nº 13.709/18 - LGPD).\n"
+            f"2. Transcreva fielmente a 'Letra da Lei' (Caput, incisos, parágrafos ou alíneas solicitadas) dentro de um bloco de citação limpo.\n"
+            f"3. Se o usuário pediu um artigo inteiro, traga o caput e seus desdobramentos diretos.\n"
+            f"4. ATENÇÃO: Seja estritamente factual. Não invente, não altere palavras da lei e não faça comentários doutrinários longos aqui. O foco é a transcrição fiel para estudo de Vade Mecum.\n"
+            f"5. Se não tiver certeza absoluta do texto exato de algum inciso específico, avise que há necessidade de dupla checagem e traga o escopo geral."
+        )
+        
+        with st.spinner("Localizando texto oficial no Vade Mecum digital..."):
+            try:
+                # Usamos uma temperatura baixíssima (0.1 ou 0.2) para que a IA seja o mais literal possível e não "invente" ou alucine palavras
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=PROMPT_LEGISLACAO,
+                    config=types.GenerateContentConfig(
+                        temperature=0.2,
+                    )
+                )
+                
+                st.markdown("---")
+                st.markdown("### 🏛️ Texto Legal Transcrito")
+                st.write(response.text)
+                
+                # Link útil institucional para proteção do usuário
+                st.info(
+                    "⚖️ **Nota de Atualização:** A legislação brasileira sofre modificações frequentes. "
+                    "Para conferência final e verificação de revogações em tempo real, consulte sempre os portais oficiais do [Planalto](https://www.planalto.gov.br) ou do [Senado Federal](https://www.senado.leg.br)."
+                )
+                
+            except Exception as e:
+                st.error(f"Erro ao buscar o texto legal: {e}")
+                
+    elif botao_buscar and not pedido_lei:
+        st.warning("Por favor, informe o artigo ou lei que deseja ler.")
