@@ -1,7 +1,7 @@
 """
 Projeto: Canal Juridiquês
-Versão: 1.0.6
-Descrição: Ecossistema acadêmico com Tutor, Metodologia, Consulta de Legislação (Google Search) e Dicionário Interativo.
+Versão: 1.0.7
+Descrição: Ecossistema acadêmico com Dicionário Interativo e Limpeza Visual (Ocultação de Headers do Streamlit).
 Autoria: Sergio Moreira Neri
 """
 
@@ -13,9 +13,15 @@ import os
 # Configuração da página web (Otimizada para Mobile e Computador)
 st.set_page_config(page_title="Canal Juridiquês", page_icon="⚖️", layout="centered")
 
-# 1. ESTILIZAÇÃO CUSTOMIZADA (CSS Totalmente Responsivo)
+# 1. ESTILIZAÇÃO CUSTOMIZADA (CSS Totalmente Responsivo + Ocultação de Elementos)
 st.markdown("""
     <style>
+    /* Oculta o cabeçalho padrão do Streamlit (Share, GitHub, 3 pontinhos) */
+    header {visibility: hidden;}
+    
+    /* Oculta o rodapé padrão "Made with Streamlit" */
+    footer {visibility: hidden;}
+    
     html, body, [class*="css"] {
         font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     }
@@ -60,7 +66,7 @@ st.markdown("""
 
 NOME_LOGO = "logo.png"
 
-# MENU LATERAL (Com a propaganda do Vade Mecum de volta ao lugar)
+# MENU LATERAL (Com a propaganda do Vade Mecum)
 with st.sidebar:
     if os.path.exists(NOME_LOGO):
         st.image(NOME_LOGO, use_container_width=True)
@@ -275,7 +281,7 @@ elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
     elif botao_buscar and not pedido_lei:
         st.warning("Por favor, informe o artigo ou lei que deseja ler.")
 
-# 4ª OPÇÃO: DICIONÁRIO JURÍDICO INTERATIVO (Novo)
+# 4ª OPÇÃO: DICIONÁRIO JURÍDICO INTERATIVO
 elif opcao_menu == "📔 Dicionário Jurídico e Latim":
     st.subheader("📔 Dicionário Jurídico e Expressões em Latim")
     st.write("Digite um termo técnico ou expressão em latim para obter a tradução e o significado aplicado ao Direito.")
