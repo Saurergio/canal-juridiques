@@ -1,10 +1,9 @@
 """
 Projeto: Canal Juridiquês
-Versão: 1.0.7
-Descrição: Ecossistema acadêmico com Dicionário Interativo e Limpeza Visual (Ocultação de Headers do Streamlit).
+Versão: 1.0.8
+Descrição: Ecossistema acadêmico com Dicionário Interativo, Limpeza Visual e Disclaimer de Boas-vindas.
 Autoria: Sergio Moreira Neri
 """
-
 import streamlit as st
 from google import genai
 from google.genai import types
@@ -96,8 +95,15 @@ st.markdown("<h2 style='color: #c5a059; margin-bottom: 0px; text-align: center;'
 st.markdown("<p style='text-align: center;'><i>Seu ecossistema acadêmico inteligente.</i></p>", unsafe_allow_html=True)
 st.markdown("---")
 
+# --- NOVO: Disclaimer 100% Gratuito ---
+st.info("""
+Olá! O **Canal Juridiquês** é o seu assistente virtual **100% gratuito** criado para descomplicar a jornada do estudante de Direito. 
+Nossa missão é apoiar seus estudos, esclarecer dúvidas e fortalecer o 
+seu aprendizado acadêmico sem cobrar nada por isso.
+""")
+st.markdown("<br>", unsafe_allow_html=True)
 
-# NAVEGAÇÃO OTIMIZADA PARA DISPOSITIVOS MÓVEIS (Agora com 4 opções)
+# NAVEGAÇÃO OTIMIZADA PARA DISPOSITIVOS MÓVEIS
 opcao_menu = st.selectbox(
     "Escolha o que deseja acessar:",
     [
@@ -117,7 +123,6 @@ try:
 except Exception:
     st.error("Erro: A chave 'GEMINI_API_KEY' não foi encontrada nos Secrets do Streamlit.")
     st.stop()
-
 
 # 1ª OPÇÃO: O CHATBOT INTELIGENTE REFINADO
 if opcao_menu == "💬 Tutor de Inteligência Artificial":
@@ -182,7 +187,6 @@ if opcao_menu == "💬 Tutor de Inteligência Artificial":
             except Exception as e:
                 st.error(f"Erro na requisição: {e}")
 
-
 # 2ª OPÇÃO: GUIA DE METODOLOGIA INTERATIVO
 elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
     st.subheader("📖 Assistente de Projetos Científicos e TCC")
@@ -235,8 +239,7 @@ elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
     elif botao_gerar and not tema_usuario:
         st.warning("Por favor, digite um tema ou comando antes de clicar em gerar.")
 
-
-# 3ª OPÇÃO: CONSULTA DE LEGISLAÇÃO (Com Google Search)
+# 3ª OPÇÃO: CONSULTA DE LEGISLAÇÃO
 elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
     st.subheader("📜 Extrator da Letra da Lei")
     st.write("Consulte o texto exato de artigos de Leis, Códigos ou da Constituição Federal utilizando busca em tempo real.")
