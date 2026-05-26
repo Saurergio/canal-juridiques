@@ -1,7 +1,7 @@
 """
 Projeto: Canal Juridiquês
-Versão: 1.0.4
-Descrição: Ecossistema acadêmico inteligente com Tutor, Assistente de Metodologia, Consulta de Legislação via Google Search e Fale Conosco.
+Versão: 1.0.5
+Descrição: Ecossistema acadêmico inteligente com Tutor, Metodologia, Consulta via Google, Vade Mecum e Dicionário.
 Autoria: Sergio Moreira Neri
 """
 
@@ -60,7 +60,7 @@ st.markdown("""
 
 NOME_LOGO = "logo.png"
 
-# MENU LATERAL
+# MENU LATERAL (Limpo, apenas Identidade e Contato)
 with st.sidebar:
     if os.path.exists(NOME_LOGO):
         st.image(NOME_LOGO, use_container_width=True)
@@ -70,15 +70,6 @@ with st.sidebar:
     st.markdown("<h3 style='text-align: center;'>Canal Juridiquês</h3>", unsafe_allow_html=True)
     st.markdown("---")
     
-    st.header("📚 Indicações")
-    st.write("Apoie o nosso projeto gratuito utilizando os links dos nossos parceiros!")
-    
-    st.markdown("### 📙 Vade Mecum Atualizado")
-    st.link_button("👉 Ver na Amazon Brasil", "https://www.amazon.com.br/s?k=vade+mecum&i=books")
-    
-    st.markdown("---")
-    
-    # SEÇÃO FALE CONOSCO
     st.header("📬 Fale Conosco")
     st.write("Dúvidas, sugestões ou problemas com a plataforma? Entre em contato conosco.")
     st.link_button("📧 Enviar E-mail", "mailto:contato@canaljuridiques.com.br")
@@ -89,6 +80,24 @@ with st.sidebar:
 # CABEÇALHO PRINCIPAL
 st.markdown("<h2 style='color: #c5a059; margin-bottom: 0px; text-align: center;'>⚖️ Canal Juridiquês</h2>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center;'><i>Seu ecossistema acadêmico inteligente.</i></p>", unsafe_allow_html=True)
+st.markdown("---")
+
+# --- RECURSOS DE APOIO CENTRALIZADOS NA TELA PRINCIPAL ---
+col_vade, col_dict = st.columns(2)
+
+with col_vade:
+    with st.expander("📙 Vade Mecum Atualizado"):
+        st.write("Consulte a legislação com o material recomendado por nossos parceiros:")
+        st.link_button("👉 Ver na Amazon Brasil", "https://www.amazon.com.br/s?k=vade+mecum&i=books")
+
+with col_dict:
+    with st.expander("🔍 Dicionário de Latim"):
+        st.markdown("**In dubio pro reo:** Na dúvida, a decisão favorece o réu.")
+        st.markdown("**Jus Puniendi:** O direito de punir do Estado.")
+        st.markdown("**Vacatio Legis:** Prazo até a lei entrar em vigor.")
+        st.markdown("**Mens Legis:** A intenção/espírito da lei.")
+        st.markdown("**Pacta sunt servanda:** Contratos devem ser cumpridos.")
+
 st.markdown("---")
 
 # NAVEGAÇÃO OTIMIZADA PARA DISPOSITIVOS MÓVEIS
