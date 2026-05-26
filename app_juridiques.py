@@ -1,7 +1,7 @@
 """
 Projeto: Canal Juridiquês
 Versão: 1.0.4
-Descrição: Ecossistema acadêmico inteligente com Tutor de IA, Assistente de Metodologia e Fale Conosco.
+Descrição: Ecossistema acadêmico inteligente com Tutor, Assistente de Metodologia, Consulta de Legislação via Google Search e Fale Conosco.
 Autoria: Sergio Moreira Neri
 """
 
@@ -94,7 +94,7 @@ st.markdown("---")
 # NAVEGAÇÃO OTIMIZADA PARA DISPOSITIVOS MÓVEIS
 opcao_menu = st.selectbox(
     "Escolha o que deseja acessar:",
-    ["💬 Tutor de Inteligência Artificial", "📖 Guia de Metodologia de Pesquisa"]
+    ["💬 Tutor de Inteligência Artificial", "📖 Guia de Metodologia de Pesquisa", "📜 Consulta à Legislação e Letra da Lei"]
 )
 
 st.markdown("<br>", unsafe_allow_html=True)
@@ -230,3 +230,50 @@ elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
                 
     elif botao_gerar and not tema_usuario:
         st.warning("Por favor, digite um tema ou comando antes de clicar em gerar.")
+
+
+# 3ª OPÇÃO: CONSULTA DE LEGISLAÇÃO (Otimizada com Busca do Google em Tempo Real)
+elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
+    st.subheader("📜 Extrator da Letra da Lei")
+    st.write("Consulte o texto exato de artigos de Leis, Códigos ou da Constituição Federal utilizando busca em tempo real.")
+
+    pedido_lei = st.text_input(
+        "Qual lei ou artigo específico você precisa consultar?",
+        placeholder="Ex: Artigo 5 da CF / Lei da LGPD / Artigo 1 da LGPD"
+    )
+
+    botao_buscar = st.button("🔍 Buscar Texto Literal")
+
+    if botao_buscar and pedido_lei:
+        PROMPT_LEGISLACAO = (
+            f"Você é o 'Consultor de Legislação Oficial' do Canal Juridiquês. Sua única missão é extrair e apresentar de forma clara "
+            f"o texto literal da norma jurídica solicitada pelo usuário: '{pedido_lei}'.\n\n"
+            f"INSTRUÇÕES DE EXECUÇÃO:\n"
+            f"1. Você tem acesso à ferramenta de busca do Google. Utilize-a para encontrar o texto exato diretamente em fontes confiáveis (como os portais do Planalto, Senado ou sites institucionais).\n"
+            f"2. Identifique claramente o nome oficial e o número da norma no topo.\n"
+            f"3. Transcreva fielmente o caput, parágrafos ou incisos solicitados pelo usuário utilizando blocos de citação do Markdown para leitura rápida no celular.\n"
+            f"4. Não faça análises ou comentários longos. O foco absoluto é entregar o texto seco da lei de forma rápida e precisa."
+        )
+
+        with st.spinner("Buscando texto oficial atualizado..."):
+            try:
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=PROMPT_LEGISLACAO,
+                    config=types.GenerateContentConfig(
+                        temperature=0.3,
+                        tools=[{"google_search": {}}],
+                    )
+                )
+
+                st.markdown("---")
+                st.markdown("### 🏛️ Texto Legal Encontrado")
+                st.write(response.text)
+
+                st.success("✔ Conteúdo sincronizado com fontes oficiais da legislação brasileira.")
+
+            except Exception as e:
+                st.error(f"Erro ao buscar o texto legal: {e}")
+
+    elif botao_buscar and not pedido_lei:
+        st.warning("Por favor, informe o artigo ou lei que deseja ler.")
