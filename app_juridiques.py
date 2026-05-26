@@ -1,7 +1,7 @@
 """
 Projeto: Canal Juridiquês
-Versão: 1.0.5
-Descrição: Ecossistema acadêmico inteligente com Tutor, Metodologia, Consulta via Google, Vade Mecum e Dicionário.
+Versão: 1.0.6
+Descrição: Ecossistema acadêmico com Tutor, Metodologia, Consulta de Legislação (Google Search) e Dicionário Interativo.
 Autoria: Sergio Moreira Neri
 """
 
@@ -60,7 +60,7 @@ st.markdown("""
 
 NOME_LOGO = "logo.png"
 
-# MENU LATERAL (Limpo, apenas Identidade e Contato)
+# MENU LATERAL (Com a propaganda do Vade Mecum de volta ao lugar)
 with st.sidebar:
     if os.path.exists(NOME_LOGO):
         st.image(NOME_LOGO, use_container_width=True)
@@ -68,6 +68,14 @@ with st.sidebar:
         st.markdown("<h1 style='text-align: center; color: #c5a059;'>⚖️</h1>", unsafe_allow_html=True)
         
     st.markdown("<h3 style='text-align: center;'>Canal Juridiquês</h3>", unsafe_allow_html=True)
+    st.markdown("---")
+    
+    st.header("📚 Indicações")
+    st.write("Apoie o nosso projeto gratuito utilizando os links dos nossos parceiros!")
+    
+    st.markdown("### 📙 Vade Mecum Atualizado")
+    st.link_button("👉 Ver na Amazon Brasil", "https://www.amazon.com.br/s?k=vade+mecum&i=books")
+    
     st.markdown("---")
     
     st.header("📬 Fale Conosco")
@@ -82,28 +90,16 @@ st.markdown("<h2 style='color: #c5a059; margin-bottom: 0px; text-align: center;'
 st.markdown("<p style='text-align: center;'><i>Seu ecossistema acadêmico inteligente.</i></p>", unsafe_allow_html=True)
 st.markdown("---")
 
-# --- RECURSOS DE APOIO CENTRALIZADOS NA TELA PRINCIPAL ---
-col_vade, col_dict = st.columns(2)
 
-with col_vade:
-    with st.expander("📙 Vade Mecum Atualizado"):
-        st.write("Consulte a legislação com o material recomendado por nossos parceiros:")
-        st.link_button("👉 Ver na Amazon Brasil", "https://www.amazon.com.br/s?k=vade+mecum&i=books")
-
-with col_dict:
-    with st.expander("🔍 Dicionário de Latim"):
-        st.markdown("**In dubio pro reo:** Na dúvida, a decisão favorece o réu.")
-        st.markdown("**Jus Puniendi:** O direito de punir do Estado.")
-        st.markdown("**Vacatio Legis:** Prazo até a lei entrar em vigor.")
-        st.markdown("**Mens Legis:** A intenção/espírito da lei.")
-        st.markdown("**Pacta sunt servanda:** Contratos devem ser cumpridos.")
-
-st.markdown("---")
-
-# NAVEGAÇÃO OTIMIZADA PARA DISPOSITIVOS MÓVEIS
+# NAVEGAÇÃO OTIMIZADA PARA DISPOSITIVOS MÓVEIS (Agora com 4 opções)
 opcao_menu = st.selectbox(
     "Escolha o que deseja acessar:",
-    ["💬 Tutor de Inteligência Artificial", "📖 Guia de Metodologia de Pesquisa", "📜 Consulta à Legislação e Letra da Lei"]
+    [
+        "💬 Tutor de Inteligência Artificial", 
+        "📖 Guia de Metodologia de Pesquisa", 
+        "📜 Consulta à Legislação e Letra da Lei",
+        "📔 Dicionário Jurídico e Latim"
+    ]
 )
 
 st.markdown("<br>", unsafe_allow_html=True)
@@ -181,16 +177,14 @@ if opcao_menu == "💬 Tutor de Inteligência Artificial":
                 st.error(f"Erro na requisição: {e}")
 
 
-# 2ª OPÇÃO: GUIA DE METODOLOGIA INTERATIVO (Protegido contra plágio)
+# 2ª OPÇÃO: GUIA DE METODOLOGIA INTERATIVO
 elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
     st.subheader("📖 Assistente de Projetos Científicos e TCC")
     
     st.warning(
         "⚠️ **Diretriz Ética e de Integridade Acadêmica:**\n\n"
         "Esta ferramenta funciona exclusivamente como um **guia de orientação e estrutura conceitual**. "
-        "A IA **não redigirá** o conteúdo do seu trabalho (parágrafos, capítulos ou introduções), "
-        "evitando práticas que configurem plágio ou violação de direitos autorais. "
-        "A autoria e o desenvolvimento do texto científico são de responsabilidade exclusiva do estudante."
+        "A IA **não redigirá** o conteúdo do seu trabalho, evitando práticas que configurem plágio ou violação de direitos autorais."
     )
     
     st.write("Insira a ideia central do seu projeto para obter um esqueleto metodológico personalizado no padrão acadêmico correto.")
@@ -204,19 +198,17 @@ elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
     
     if botao_gerar and tema_usuario:
         PROMPT_METODOLOGIA = (
-            f"Você é um orientador acadêmico especialista em metodologia científica jurídica, com foco estrito na ética e integridade acadêmica. "
+            f"Você é um orientador acadêmico especialista em metodologia científica jurídica. "
             f"Analise o seguinte pedido do estudante: '{tema_usuario}'.\n\n"
-            f"DIRETRIZES OBRIGATÓRIAS DE ESCOPO:\n"
-            f"1. Identifique o formato solicitado pelo usuário (se ele mencionou artigo, TCC, monografia, etc.). Se não especificou, adote o padrão de Artigo Científico.\n"
-            f"2. Você está RIGOROSAMENTE PROIBIDO de escrever textos longos, parágrafos de desenvolvimento, introduções prontas, conclusões prontas ou qualquer conteúdo que o aluno possa copiar e colar direto no trabalho final.\n"
-            f"3. Seu papel é apenas fornecer INSIGHTS E MAPEAMENTO ESTRUTURAL. Se o usuário solicitar explicitamente para você 'escrever o trabalho', 'fazer o capítulo' ou 'redigir', recuse educadamente, explicando brevemente que a redação integral por IA fere a integridade acadêmica e pode caracterizar plágio.\n\n"
+            f"DIRETRIZES OBRIGATÓRIAS:\n"
+            f"1. Identifique o formato solicitado pelo usuário (se ele mencionou artigo, TCC, monografia, etc.).\n"
+            f"2. Você está RIGOROSAMENTE PROIBIDO de escrever textos longos, parágrafos de desenvolvimento ou conclusões prontas.\n"
             f"O QUE VOCÊ DEVE GERAR (De forma puramente estrutural e em tópicos):\n"
-            f"a) Formato Identificado (Ex: Artigo, TCC, Monografia);\n"
+            f"a) Formato Identificado;\n"
             f"b) Sugestão de Título Refinado;\n"
-            f"c) Problema de Pesquisa (pergunta norteadora em uma única frase);\n"
-            f"d) Três Objetivos Específicos (em tópicos curtos começando com verbos no infinitivo);\n"
-            f"e) Sumário Provisório Sugerido (apenas os títulos dos capítulos/seções adequados ao formato, sem texto descritivo).\n\n"
-            f"Mantenha um tom profissional, técnico e pedagógico."
+            f"c) Problema de Pesquisa;\n"
+            f"d) Três Objetivos Específicos;\n"
+            f"e) Sumário Provisório Sugerido.\n"
         )
         
         with st.spinner("Analisando o tema e mapeando a estrutura ideal..."):
@@ -224,15 +216,12 @@ elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
                 response = client.models.generate_content(
                     model='gemini-2.5-flash',
                     contents=PROMPT_METODOLOGIA,
-                    config=types.GenerateContentConfig(
-                        temperature=0.4,
-                    )
+                    config=types.GenerateContentConfig(temperature=0.4)
                 )
                 
                 st.markdown("---")
                 st.markdown("### 📋 Proposta Estrutural Obtida")
                 st.write(response.text)
-                st.info("💡 **Como usar este resultado:** Utilize este mapa como base para pesquisar sua doutrina, jurisprudência e iniciar a sua própria escrita de forma autêntica.")
                 
             except Exception as e:
                 st.error(f"Erro ao processar a estrutura: {e}")
@@ -241,7 +230,7 @@ elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
         st.warning("Por favor, digite um tema ou comando antes de clicar em gerar.")
 
 
-# 3ª OPÇÃO: CONSULTA DE LEGISLAÇÃO (Otimizada com Busca do Google em Tempo Real)
+# 3ª OPÇÃO: CONSULTA DE LEGISLAÇÃO (Com Google Search)
 elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
     st.subheader("📜 Extrator da Letra da Lei")
     st.write("Consulte o texto exato de artigos de Leis, Códigos ou da Constituição Federal utilizando busca em tempo real.")
@@ -278,7 +267,6 @@ elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
                 st.markdown("---")
                 st.markdown("### 🏛️ Texto Legal Encontrado")
                 st.write(response.text)
-
                 st.success("✔ Conteúdo sincronizado com fontes oficiais da legislação brasileira.")
 
             except Exception as e:
@@ -286,3 +274,45 @@ elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
 
     elif botao_buscar and not pedido_lei:
         st.warning("Por favor, informe o artigo ou lei que deseja ler.")
+
+# 4ª OPÇÃO: DICIONÁRIO JURÍDICO INTERATIVO (Novo)
+elif opcao_menu == "📔 Dicionário Jurídico e Latim":
+    st.subheader("📔 Dicionário Jurídico e Expressões em Latim")
+    st.write("Digite um termo técnico ou expressão em latim para obter a tradução e o significado aplicado ao Direito.")
+
+    termo_busca = st.text_input(
+        "Qual termo você deseja consultar?",
+        placeholder="Ex: In dubio pro reo, Jus puniendi, Vacatio Legis, Erga omnes"
+    )
+
+    btn_dicionario = st.button("🔍 Consultar Termo")
+
+    if btn_dicionario and termo_busca:
+        PROMPT_DICIONARIO = (
+            f"Você é um Dicionário Jurídico dinâmico do Canal Juridiquês, focado em ajudar estudantes de graduação em Direito. "
+            f"Explique de forma objetiva, didática e direta o significado do seguinte termo: '{termo_busca}'.\n\n"
+            f"REGRAS DE FORMATAÇÃO:\n"
+            f"1. Se o termo for em latim, forneça a tradução literal destacada logo na primeira linha.\n"
+            f"2. Explique o conceito jurídico em no máximo dois parágrafos curtos.\n"
+            f"3. Forneça um exemplo rápido de aplicação desse termo no direito brasileiro.\n"
+            f"4. Mantenha uma linguagem acessível e profissional."
+        )
+
+        with st.spinner(f"Buscando o significado de '{termo_busca}'..."):
+            try:
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=PROMPT_DICIONARIO,
+                    config=types.GenerateContentConfig(
+                        temperature=0.3,
+                    )
+                )
+
+                st.markdown("---")
+                st.markdown(response.text)
+
+            except Exception as e:
+                st.error(f"Erro ao buscar o termo: {e}")
+
+    elif btn_dicionario and not termo_busca:
+        st.warning("Por favor, digite uma palavra ou expressão para consultar.")
