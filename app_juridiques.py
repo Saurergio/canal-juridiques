@@ -1,7 +1,7 @@
 """
 Projeto: Canal Juridiquês
-Versão: 1.0.15
-Descrição: Reversão dos módulos de Legislação e Dicionário para formulários clássicos (Correção de UX do chat_input).
+Versão: 1.0.16
+Descrição: Restauração da UI de Chat (v1.0.10) para Dicionário e Legislação, mantendo Áudio e Download.
 Autoria: Sergio Moreira Neri
 """
 import streamlit as st
@@ -46,6 +46,7 @@ NOME_LOGO = "logo.png"
 
 # --- MENU LATERAL ---
 with st.sidebar:
+    # Lógica inteligente: se o logo existe, exibe só o logo. Se não, exibe emoji + texto.
     if os.path.exists(NOME_LOGO):
         st.image(NOME_LOGO, use_container_width=True, output_format="PNG")
     else:
@@ -180,6 +181,8 @@ if opcao_menu == "💬 Tutor de Inteligência Artificial":
 elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
     st.subheader("📖 Assistente de Projetos Científicos e TCC")
     st.warning("⚠️ Esta ferramenta funciona exclusivamente como um **guia estrutural**. A IA não redigirá trabalhos prontos.")
+    
+    # Mantido o formulário tradicional para o TCC, conforme sua instrução original
     tema_usuario = st.text_input("Digite a ideia central ou o tema do seu trabalho:")
     botao_gerar = st.button("🚀 Gerar Estrutura")
     
@@ -218,69 +221,71 @@ elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
     st.subheader("📜 Extrator da Letra da Lei")
     st.write("Consulte o texto exato de artigos de Leis, Códigos ou da Constituição Federal utilizando busca em tempo real.")
 
-    pedido_lei = st.text_input("Qual lei ou artigo específico você precisa consultar?", placeholder="Ex: Artigo 5 da CF, Lei da LGPD...")
-    botao_buscar = st.button("🔍 Buscar Texto Literal")
+    # Restaurado o visual "chat" igual ao Tutor (versão 1.0.10)
+    if pedido_lei := st.chat_input("Ex: Artigo 5 da CF, Lei da LGPD..."):
+        with st.chat_message("user"):
+            st.markdown(pedido_lei)
 
-    if botao_buscar and pedido_lei:
-        PROMPT_LEGISLACAO = f"Extraia o texto literal exato e atualizado da norma: '{pedido_lei}'. Use blocos de citação."
-        with st.spinner("Buscando texto oficial atualizado..."):
-            try:
-                response = client.models.generate_content(
-                    model='gemini-2.5-flash',
-                    contents=PROMPT_LEGISLACAO,
-                    config=types.GenerateContentConfig(tools=[{"google_search": {}}], temperature=0.3)
-                )
-                st.markdown("---")
-                st.markdown("### 🏛️ Texto Legal Encontrado")
-                st.write(response.text)
-                
-                # Áudio
-                audio_bytes = gerar_audio_acessibilidade(response.text)
-                if audio_bytes:
-                    st.audio(audio_bytes, format="audio/mp3")
+        with st.chat_message("assistant"):
+            PROMPT_LEGISLACAO = f"Extraia o texto literal exato e atualizado da norma: '{pedido_lei}'. Use blocos de citação."
+            with st.spinner("Buscando texto oficial atualizado..."):
+                try:
+                    response = client.models.generate_content(
+                        model='gemini-2.5-flash',
+                        contents=PROMPT_LEGISLACAO,
+                        config=types.GenerateContentConfig(tools=[{"google_search": {}}], temperature=0.3)
+                    )
+                    st.markdown("### 🏛️ Texto Legal Encontrado")
+                    st.write(response.text)
                     
-                # Botão de Salvar
-                st.download_button(
-                    label="📥 Salvar Lei (.txt)",
-                    data=response.text,
-                    file_name="letra_da_lei.txt",
-                    mime="text/plain"
-                )
-            except Exception as e:
-                if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
-                    st.warning("⚠️ Servidores ocupados no momento. Aguarde uns 20 segundinhos e tente a busca novamente.")
-                else:
-                    st.error(f"Falha ao buscar a lei. Detalhe técnico: {e}")
+                    # Áudio
+                    audio_bytes = gerar_audio_acessibilidade(response.text)
+                    if audio_bytes:
+                        st.audio(audio_bytes, format="audio/mp3")
+                        
+                    # Botão de Salvar
+                    st.download_button(
+                        label="📥 Salvar Lei (.txt)",
+                        data=response.text,
+                        file_name="letra_da_lei.txt",
+                        mime="text/plain"
+                    )
+                except Exception as e:
+                    if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+                        st.warning("⚠️ Servidores ocupados no momento. Aguarde uns 20 segundinhos e tente a busca novamente.")
+                    else:
+                        st.error(f"Falha ao buscar a lei. Detalhe técnico: {e}")
 
 # --- 4ª OPÇÃO: DICIONÁRIO COM CACHE ---
 elif opcao_menu == "📔 Dicionário Jurídico e Latim":
     st.subheader("📔 Dicionário Jurídico e Expressões em Latim")
     st.write("Digite um termo técnico ou expressão em latim para obter a tradução e o significado aplicado ao Direito.")
 
-    termo_busca = st.text_input("Qual termo você deseja consultar?", placeholder="Ex: Erga omnes, Vacatio Legis...")
-    btn_dicionario = st.button("🔍 Consultar Termo")
+    # Restaurado o visual "chat" igual ao Tutor (versão 1.0.10)
+    if termo_busca := st.chat_input("Ex: Erga omnes, Vacatio Legis..."):
+        with st.chat_message("user"):
+            st.markdown(termo_busca)
 
-    if btn_dicionario and termo_busca:
-        with st.spinner(f"Buscando o significado de '{termo_busca}'..."):
-            try:
-                resultado = consultar_dicionario_cache(termo_busca.strip().lower())
-                st.markdown("---")
-                st.markdown(resultado)
-                
-                # Áudio
-                audio_bytes = gerar_audio_acessibilidade(resultado)
-                if audio_bytes:
-                    st.audio(audio_bytes, format="audio/mp3")
+        with st.chat_message("assistant"):
+            with st.spinner(f"Buscando o significado de '{termo_busca}'..."):
+                try:
+                    resultado = consultar_dicionario_cache(termo_busca.strip().lower())
+                    st.markdown(resultado)
                     
-                # Botão de Salvar
-                st.download_button(
-                    label="📥 Salvar Significado (.txt)",
-                    data=resultado,
-                    file_name="dicionario_juridico.txt",
-                    mime="text/plain"
-                )
-            except Exception as e:
-                if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
-                    st.warning("⚠️ Muitos estudantes consultando o dicionário agora! Aguarde 20 segundos e tente novamente.")
-                else:
-                    st.error(f"Erro ao buscar o termo. Detalhe técnico: {e}")
+                    # Áudio
+                    audio_bytes = gerar_audio_acessibilidade(resultado)
+                    if audio_bytes:
+                        st.audio(audio_bytes, format="audio/mp3")
+                        
+                    # Botão de Salvar
+                    st.download_button(
+                        label="📥 Salvar Significado (.txt)",
+                        data=resultado,
+                        file_name="dicionario_juridico.txt",
+                        mime="text/plain"
+                    )
+                except Exception as e:
+                    if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+                        st.warning("⚠️ Muitos estudantes consultando o dicionário agora! Aguarde 20 segundos e tente novamente.")
+                    else:
+                        st.error(f"Erro ao buscar o termo. Detalhe técnico: {e}")
