@@ -1,7 +1,7 @@
 """
 Projeto: Canal Juridiquês
-Versão: 1.0.14
-Descrição: Refinamento visual da barra lateral (remoção de texto redundante quando o logo existe).
+Versão: 1.0.15
+Descrição: Reversão dos módulos de Legislação e Dicionário para formulários clássicos (Correção de UX do chat_input).
 Autoria: Sergio Moreira Neri
 """
 import streamlit as st
@@ -46,7 +46,6 @@ NOME_LOGO = "logo.png"
 
 # --- MENU LATERAL ---
 with st.sidebar:
-    # Lógica inteligente: se o logo existe, exibe só o logo. Se não, exibe emoji + texto.
     if os.path.exists(NOME_LOGO):
         st.image(NOME_LOGO, use_container_width=True, output_format="PNG")
     else:
@@ -128,4 +127,160 @@ if opcao_menu == "💬 Tutor de Inteligência Artificial":
 
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
-            st
+            st.markdown(message["content"])
+
+    if prompt := st.chat_input("Digite sua dúvida jurídica aqui..."):
+        with st.chat_message("user"):
+            st.markdown(prompt)
+        st.session_state.messages.append({"role": "user", "content": prompt})
+
+        with st.chat_message("assistant"):
+            message_placeholder = st.empty()
+            full_response = ""
+            
+            try:
+                historico_api = []
+                for m in st.session_state.messages[:-1]:
+                    role_api = "user" if m["role"] == "user" else "model"
+                    historico_api.append(types.Content(role=role_api, parts=[types.Part.from_text(text=m["content"])]))
+                
+                response_stream = client.models.generate_content_stream(
+                    model='gemini-2.5-flash',
+                    contents=[*historico_api, types.Content(role="user", parts=[types.Part.from_text(text=prompt)])],
+                    config=types.GenerateContentConfig(system_instruction=PROMPT_TUTOR, temperature=0.6)
+                )
+                
+                for chunk in response_stream:
+                    if chunk.text:
+                        full_response += chunk.text
+                        message_placeholder.markdown(full_response + "▌")
+                message_placeholder.markdown(full_response)
+                st.session_state.messages.append({"role": "assistant", "content": full_response})
+                
+                # Gera o áudio
+                audio_bytes = gerar_audio_acessibilidade(full_response)
+                if audio_bytes:
+                    st.audio(audio_bytes, format="audio/mp3")
+                
+                # Botão de Salvar
+                st.download_button(
+                    label="📥 Salvar Resposta (.txt)",
+                    data=full_response,
+                    file_name="tutor_juridiques.txt",
+                    mime="text/plain"
+                )
+                
+            except Exception as e:
+                if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+                    st.warning("⚠️ Nossa inteligência artificial está atendendo a muitos alunos agora! Por favor, aguarde cerca de 20 segundos e tente novamente.")
+                else:
+                    st.error(f"Ocorreu um erro de conexão. Detalhe técnico: {e}")
+
+# --- 2ª OPÇÃO: METODOLOGIA ---
+elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
+    st.subheader("📖 Assistente de Projetos Científicos e TCC")
+    st.warning("⚠️ Esta ferramenta funciona exclusivamente como um **guia estrutural**. A IA não redigirá trabalhos prontos.")
+    tema_usuario = st.text_input("Digite a ideia central ou o tema do seu trabalho:")
+    botao_gerar = st.button("🚀 Gerar Estrutura")
+    
+    if botao_gerar and tema_usuario:
+        PROMPT_METODOLOGIA = f"Atue como orientador de metodologia. Estruture em tópicos o tema: '{tema_usuario}'. Formato: Formato, Título, Problema, Objetivos, Sumário."
+        with st.spinner("Analisando o tema..."):
+            try:
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash', 
+                    contents=PROMPT_METODOLOGIA,
+                    config=types.GenerateContentConfig(temperature=0.4) 
+                )
+                st.markdown("---")
+                st.write(response.text)
+                
+                # Áudio
+                audio_bytes = gerar_audio_acessibilidade(response.text)
+                if audio_bytes:
+                    st.audio(audio_bytes, format="audio/mp3")
+                    
+                # Botão de Salvar
+                st.download_button(
+                    label="📥 Salvar Estrutura (.txt)",
+                    data=response.text,
+                    file_name="estrutura_tcc.txt",
+                    mime="text/plain"
+                )
+            except Exception as e:
+                if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+                    st.warning("⚠️ Limite de requisições atingido. Aguarde 20 segundos e tente novamente.")
+                else:
+                    st.error(f"Erro na comunicação com o servidor. Detalhe técnico para depuração: {e}")
+
+# --- 3ª OPÇÃO: LEGISLAÇÃO ---
+elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
+    st.subheader("📜 Extrator da Letra da Lei")
+    st.write("Consulte o texto exato de artigos de Leis, Códigos ou da Constituição Federal utilizando busca em tempo real.")
+
+    pedido_lei = st.text_input("Qual lei ou artigo específico você precisa consultar?", placeholder="Ex: Artigo 5 da CF, Lei da LGPD...")
+    botao_buscar = st.button("🔍 Buscar Texto Literal")
+
+    if botao_buscar and pedido_lei:
+        PROMPT_LEGISLACAO = f"Extraia o texto literal exato e atualizado da norma: '{pedido_lei}'. Use blocos de citação."
+        with st.spinner("Buscando texto oficial atualizado..."):
+            try:
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=PROMPT_LEGISLACAO,
+                    config=types.GenerateContentConfig(tools=[{"google_search": {}}], temperature=0.3)
+                )
+                st.markdown("---")
+                st.markdown("### 🏛️ Texto Legal Encontrado")
+                st.write(response.text)
+                
+                # Áudio
+                audio_bytes = gerar_audio_acessibilidade(response.text)
+                if audio_bytes:
+                    st.audio(audio_bytes, format="audio/mp3")
+                    
+                # Botão de Salvar
+                st.download_button(
+                    label="📥 Salvar Lei (.txt)",
+                    data=response.text,
+                    file_name="letra_da_lei.txt",
+                    mime="text/plain"
+                )
+            except Exception as e:
+                if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+                    st.warning("⚠️ Servidores ocupados no momento. Aguarde uns 20 segundinhos e tente a busca novamente.")
+                else:
+                    st.error(f"Falha ao buscar a lei. Detalhe técnico: {e}")
+
+# --- 4ª OPÇÃO: DICIONÁRIO COM CACHE ---
+elif opcao_menu == "📔 Dicionário Jurídico e Latim":
+    st.subheader("📔 Dicionário Jurídico e Expressões em Latim")
+    st.write("Digite um termo técnico ou expressão em latim para obter a tradução e o significado aplicado ao Direito.")
+
+    termo_busca = st.text_input("Qual termo você deseja consultar?", placeholder="Ex: Erga omnes, Vacatio Legis...")
+    btn_dicionario = st.button("🔍 Consultar Termo")
+
+    if btn_dicionario and termo_busca:
+        with st.spinner(f"Buscando o significado de '{termo_busca}'..."):
+            try:
+                resultado = consultar_dicionario_cache(termo_busca.strip().lower())
+                st.markdown("---")
+                st.markdown(resultado)
+                
+                # Áudio
+                audio_bytes = gerar_audio_acessibilidade(resultado)
+                if audio_bytes:
+                    st.audio(audio_bytes, format="audio/mp3")
+                    
+                # Botão de Salvar
+                st.download_button(
+                    label="📥 Salvar Significado (.txt)",
+                    data=resultado,
+                    file_name="dicionario_juridico.txt",
+                    mime="text/plain"
+                )
+            except Exception as e:
+                if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+                    st.warning("⚠️ Muitos estudantes consultando o dicionário agora! Aguarde 20 segundos e tente novamente.")
+                else:
+                    st.error(f"Erro ao buscar o termo. Detalhe técnico: {e}")
