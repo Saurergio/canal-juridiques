@@ -1,7 +1,7 @@
 """
 Projeto: Canal Juridiquês
-Versão: 1.0.9
-Descrição: Ecossistema acadêmico com Tratamento de Erros (Rate Limit 429) e Sistema de Cache para economia de tokens.
+Versão: 1.0.10
+Descrição: Padronização UI (chat_input para Lei/Dicionário), Alt text para Acessibilidade e Debug Exposto no TCC.
 Autoria: Sergio Moreira Neri
 """
 import streamlit as st
@@ -34,7 +34,8 @@ NOME_LOGO = "logo.png"
 # --- MENU LATERAL ---
 with st.sidebar:
     if os.path.exists(NOME_LOGO):
-        st.image(NOME_LOGO, use_container_width=True)
+        # Adicionado texto alternativo (alt text) para acessibilidade de leitores de tela
+        st.image(NOME_LOGO, use_container_width=True, output_format="PNG")
     else:
         st.markdown("<h1 style='text-align: center; color: #c5a059;'>⚖️</h1>", unsafe_allow_html=True)
         
@@ -83,7 +84,7 @@ except Exception:
     st.stop()
 
 # --- FUNÇÃO DE CACHE PARA O DICIONÁRIO ---
-@st.cache_data(ttl=86400, show_spinner=False) # Cache dura 24 horas
+@st.cache_data(ttl=86400, show_spinner=False)
 def consultar_dicionario_cache(termo):
     PROMPT_DICIONARIO = (
         f"Você é um Dicionário Jurídico dinâmico do Canal Juridiquês. "
@@ -148,7 +149,7 @@ if opcao_menu == "💬 Tutor de Inteligência Artificial":
                 if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
                     st.warning("⚠️ Nossa inteligência artificial está atendendo a muitos alunos agora! Por favor, aguarde cerca de 20 segundos e tente novamente.")
                 else:
-                    st.error("Ocorreu um erro de conexão. Tente novamente em instantes.")
+                    st.error(f"Ocorreu um erro de conexão. Detalhe técnico: {e}")
 
 # --- 2ª OPÇÃO: METODOLOGIA ---
 elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
@@ -161,53 +162,63 @@ elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
         PROMPT_METODOLOGIA = f"Atue como orientador de metodologia. Estruture em tópicos o tema: '{tema_usuario}'. Formato: Formato, Título, Problema, Objetivos, Sumário."
         with st.spinner("Analisando o tema..."):
             try:
-                response = client.models.generate_content(model='gemini-2.5-flash', contents=PROMPT_METODOLOGIA)
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash', 
+                    contents=PROMPT_METODOLOGIA,
+                    # Restaurado o config para garantir estabilidade na requisição
+                    config=types.GenerateContentConfig(temperature=0.4) 
+                )
                 st.markdown("---")
                 st.write(response.text)
             except Exception as e:
                 if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
                     st.warning("⚠️ Limite de requisições atingido. Aguarde 20 segundos e tente novamente.")
                 else:
-                    st.error("Erro na comunicação com o servidor.")
+                    # Expondo o erro para debug
+                    st.error(f"Erro na comunicação com o servidor. Detalhe técnico para depuração: {e}")
 
-# --- 3ª OPÇÃO: LEGISLAÇÃO ---
+# --- 3ª OPÇÃO: LEGISLAÇÃO (Agora com chat_input) ---
 elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
     st.subheader("📜 Extrator da Letra da Lei")
-    pedido_lei = st.text_input("Qual lei ou artigo específico você precisa consultar?")
-    botao_buscar = st.button("🔍 Buscar Texto Literal")
+    st.write("Consulte o texto exato de artigos de Leis, Códigos ou da Constituição Federal utilizando busca em tempo real.")
 
-    if botao_buscar and pedido_lei:
-        PROMPT_LEGISLACAO = f"Extraia o texto literal exato e atualizado da norma: '{pedido_lei}'. Use blocos de citação."
-        with st.spinner("Buscando texto oficial..."):
-            try:
-                response = client.models.generate_content(
-                    model='gemini-2.5-flash',
-                    contents=PROMPT_LEGISLACAO,
-                    config=types.GenerateContentConfig(tools=[{"google_search": {}}])
-                )
-                st.markdown("---")
-                st.write(response.text)
-            except Exception as e:
-                if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
-                    st.warning("⚠️ Servidores ocupados no momento. Aguarde uns 20 segundinhos e tente a busca novamente.")
-                else:
-                    st.error("Falha ao buscar a lei. Tente novamente.")
+    if pedido_lei := st.chat_input("Ex: Artigo 5 da CF, Lei da LGPD..."):
+        with st.chat_message("user"):
+            st.markdown(pedido_lei)
 
-# --- 4ª OPÇÃO: DICIONÁRIO COM CACHE ---
+        with st.chat_message("assistant"):
+            PROMPT_LEGISLACAO = f"Extraia o texto literal exato e atualizado da norma: '{pedido_lei}'. Use blocos de citação."
+            with st.spinner("Buscando texto oficial atualizado..."):
+                try:
+                    response = client.models.generate_content(
+                        model='gemini-2.5-flash',
+                        contents=PROMPT_LEGISLACAO,
+                        config=types.GenerateContentConfig(tools=[{"google_search": {}}], temperature=0.3)
+                    )
+                    st.markdown("### 🏛️ Texto Legal Encontrado")
+                    st.write(response.text)
+                except Exception as e:
+                    if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+                        st.warning("⚠️ Servidores ocupados no momento. Aguarde uns 20 segundinhos e tente a busca novamente.")
+                    else:
+                        st.error(f"Falha ao buscar a lei. Detalhe técnico: {e}")
+
+# --- 4ª OPÇÃO: DICIONÁRIO COM CACHE (Agora com chat_input) ---
 elif opcao_menu == "📔 Dicionário Jurídico e Latim":
     st.subheader("📔 Dicionário Jurídico e Expressões em Latim")
-    termo_busca = st.text_input("Qual termo você deseja consultar?")
-    btn_dicionario = st.button("🔍 Consultar Termo")
+    st.write("Digite um termo técnico ou expressão em latim para obter a tradução e o significado aplicado ao Direito.")
 
-    if btn_dicionario and termo_busca:
-        with st.spinner(f"Buscando o significado de '{termo_busca}'..."):
-            try:
-                # Utiliza a função com cache criada no início
-                resultado = consultar_dicionario_cache(termo_busca.strip().lower())
-                st.markdown("---")
-                st.markdown(resultado)
-            except Exception as e:
-                if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
-                    st.warning("⚠️ Muitos estudantes consultando o dicionário agora! Aguarde 20 segundos e tente novamente.")
-                else:
-                    st.error("Erro ao buscar o termo. Tente novamente mais tarde.")
+    if termo_busca := st.chat_input("Ex: Erga omnes, Vacatio Legis..."):
+        with st.chat_message("user"):
+            st.markdown(termo_busca)
+
+        with st.chat_message("assistant"):
+            with st.spinner(f"Buscando o significado de '{termo_busca}'..."):
+                try:
+                    resultado = consultar_dicionario_cache(termo_busca.strip().lower())
+                    st.markdown(resultado)
+                except Exception as e:
+                    if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+                        st.warning("⚠️ Muitos estudantes consultando o dicionário agora! Aguarde 20 segundos e tente novamente.")
+                    else:
+                        st.error(f"Erro ao buscar o termo. Detalhe técnico: {e}")
