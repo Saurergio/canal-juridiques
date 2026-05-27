@@ -1,7 +1,7 @@
 """
 Projeto: Canal Juridiquês
-Versão: 1.0.12
-Descrição: Logo posicionado no canto esquerdo superior, manutenção do centro e acessibilidade (Text-to-Speech).
+Versão: 1.0.13
+Descrição: Restauração do cabeçalho original e adição do botão "Salvar Resposta" (Download TXT).
 Autoria: Sergio Moreira Neri
 """
 import streamlit as st
@@ -46,6 +46,11 @@ NOME_LOGO = "logo.png"
 
 # --- MENU LATERAL ---
 with st.sidebar:
+    if os.path.exists(NOME_LOGO):
+        st.image(NOME_LOGO, use_container_width=True, output_format="PNG")
+    else:
+        st.markdown("<h1 style='text-align: center; color: #c5a059;'>⚖️</h1>", unsafe_allow_html=True)
+        
     st.markdown("<h3 style='text-align: center; color: #c5a059;'>Canal Juridiquês</h3>", unsafe_allow_html=True)
     st.markdown("---")
     st.header("📚 Indicações")
@@ -59,20 +64,9 @@ with st.sidebar:
     st.markdown("---")
     st.caption("📢 Espaço para anúncios Google AdSense.")
 
-# --- CABEÇALHO PRINCIPAL COM LOGO À ESQUERDA ---
-# Criação de 3 colunas para garantir que o texto central fique perfeitamente alinhado
-col_logo, col_centro, col_vazia = st.columns([1, 4, 1])
-
-with col_logo:
-    if os.path.exists(NOME_LOGO):
-        st.image(NOME_LOGO, width=100, output_format="PNG")
-    else:
-        st.markdown("<h1 style='color: #c5a059;'>⚖️</h1>", unsafe_allow_html=True)
-
-with col_centro:
-    st.markdown("<h2 style='color: #c5a059; margin-bottom: 0px; text-align: center;'>Canal Juridiquês</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center;'><i>Seu ecossistema acadêmico inteligente.</i></p>", unsafe_allow_html=True)
-
+# --- CABEÇALHO PRINCIPAL ORIGINAL ---
+st.markdown("<h2 style='color: #c5a059; margin-bottom: 0px; text-align: center;'>⚖️ Canal Juridiquês</h2>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'><i>Seu ecossistema acadêmico inteligente.</i></p>", unsafe_allow_html=True)
 st.markdown("---")
 
 st.info("""
@@ -163,10 +157,18 @@ if opcao_menu == "💬 Tutor de Inteligência Artificial":
                 message_placeholder.markdown(full_response)
                 st.session_state.messages.append({"role": "assistant", "content": full_response})
                 
-                # Gera o áudio após a resposta estar completa
+                # Gera o áudio
                 audio_bytes = gerar_audio_acessibilidade(full_response)
                 if audio_bytes:
                     st.audio(audio_bytes, format="audio/mp3")
+                
+                # Botão de Salvar
+                st.download_button(
+                    label="📥 Salvar Resposta (.txt)",
+                    data=full_response,
+                    file_name="tutor_juridiques.txt",
+                    mime="text/plain"
+                )
                 
             except Exception as e:
                 if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
@@ -193,10 +195,18 @@ elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
                 st.markdown("---")
                 st.write(response.text)
                 
-                # Áudio para a Metodologia
+                # Áudio
                 audio_bytes = gerar_audio_acessibilidade(response.text)
                 if audio_bytes:
                     st.audio(audio_bytes, format="audio/mp3")
+                    
+                # Botão de Salvar
+                st.download_button(
+                    label="📥 Salvar Estrutura (.txt)",
+                    data=response.text,
+                    file_name="estrutura_tcc.txt",
+                    mime="text/plain"
+                )
             except Exception as e:
                 if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
                     st.warning("⚠️ Limite de requisições atingido. Aguarde 20 segundos e tente novamente.")
@@ -224,10 +234,18 @@ elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
                     st.markdown("### 🏛️ Texto Legal Encontrado")
                     st.write(response.text)
                     
-                    # Áudio para a Legislação
+                    # Áudio
                     audio_bytes = gerar_audio_acessibilidade(response.text)
                     if audio_bytes:
                         st.audio(audio_bytes, format="audio/mp3")
+                        
+                    # Botão de Salvar
+                    st.download_button(
+                        label="📥 Salvar Lei (.txt)",
+                        data=response.text,
+                        file_name="letra_da_lei.txt",
+                        mime="text/plain"
+                    )
                 except Exception as e:
                     if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
                         st.warning("⚠️ Servidores ocupados no momento. Aguarde uns 20 segundinhos e tente a busca novamente.")
@@ -249,10 +267,18 @@ elif opcao_menu == "📔 Dicionário Jurídico e Latim":
                     resultado = consultar_dicionario_cache(termo_busca.strip().lower())
                     st.markdown(resultado)
                     
-                    # Áudio para o Dicionário
+                    # Áudio
                     audio_bytes = gerar_audio_acessibilidade(resultado)
                     if audio_bytes:
                         st.audio(audio_bytes, format="audio/mp3")
+                        
+                    # Botão de Salvar
+                    st.download_button(
+                        label="📥 Salvar Significado (.txt)",
+                        data=resultado,
+                        file_name="dicionario_juridico.txt",
+                        mime="text/plain"
+                    )
                 except Exception as e:
                     if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
                         st.warning("⚠️ Muitos estudantes consultando o dicionário agora! Aguarde 20 segundos e tente novamente.")
