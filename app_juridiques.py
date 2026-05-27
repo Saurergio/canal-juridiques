@@ -27,7 +27,7 @@ st.markdown("""
     }
     div.stButton > button:hover { background-color: #a38446; color: white; }
     div[data-baseweb="select"] { border: 1px solid #c5a059; border-radius: 8px; }
-    [data-testid="stChatMessage"] { border-radius: 15px; background-color: #1e2430; margin-bottom: 12px; padding: 14px; }
+    [data-testid="stChatMessage"] { border-radius: 15px; background-color: #1e2430; margin-bottom: 12px; padding: 14px; color: #FAFAFA; }
     </style>
     """, unsafe_allow_html=True)
 
