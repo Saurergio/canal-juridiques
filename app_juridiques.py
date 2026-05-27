@@ -106,4 +106,155 @@ except Exception:
 def consultar_dicionario_cache(termo):
     PROMPT_DICIONARIO = (
         f"Você é um Dicionário Jurídico dinâmico do Canal Juridiquês. "
-        f"Explique de forma objet
+        f"Explique de forma objetiva, didática e direta o significado do seguinte termo: '{termo}'.\n\n"
+        f"REGRAS DE FORMATAÇÃO:\n"
+        f"1. Se o termo for em latim, forneça a tradução literal destacada logo na primeira linha.\n"
+        f"2. Explique o conceito jurídico em no máximo dois parágrafos curtos.\n"
+        f"3. Forneça um exemplo rápido de aplicação desse termo no direito brasileiro."
+    )
+    resposta = client.models.generate_content(
+        model='gemini-2.5-flash',
+        contents=PROMPT_DICIONARIO,
+        config=types.GenerateContentConfig(temperature=0.3)
+    )
+    return resposta.text
+
+# --- 1ª OPÇÃO: TUTOR IA ---
+if opcao_menu == "💬 Tutor de Inteligência Artificial":
+    PROMPT_TUTOR = (
+        "Você é o 'Tutor Jurídico Acadêmico' do portal Canal Juridiquês. Adote uma postura didática. "
+        "Ao explicar conceitos, quebre a resposta em:\n"
+        "1) Conceito Puro;\n2) Exemplo Prático;\n3) Fundamentação.\n"
+        "Use formatação Markdown para leitura rápida no celular."
+    )
+
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    if prompt := st.chat_input("Digite sua dúvida jurídica aqui..."):
+        with st.chat_message("user"):
+            st.markdown(prompt)
+        st.session_state.messages.append({"role": "user", "content": prompt})
+
+        with st.chat_message("assistant"):
+            message_placeholder = st.empty()
+            full_response = ""
+            
+            try:
+                historico_api = []
+                for m in st.session_state.messages[:-1]:
+                    role_api = "user" if m["role"] == "user" else "model"
+                    historico_api.append(types.Content(role=role_api, parts=[types.Part.from_text(text=m["content"])]))
+                
+                response_stream = client.models.generate_content_stream(
+                    model='gemini-2.5-flash',
+                    contents=[*historico_api, types.Content(role="user", parts=[types.Part.from_text(text=prompt)])],
+                    config=types.GenerateContentConfig(system_instruction=PROMPT_TUTOR, temperature=0.6)
+                )
+                
+                for chunk in response_stream:
+                    if chunk.text:
+                        full_response += chunk.text
+                        message_placeholder.markdown(full_response + "▌")
+                message_placeholder.markdown(full_response)
+                st.session_state.messages.append({"role": "assistant", "content": full_response})
+                
+                # Gera o áudio após a resposta estar completa
+                audio_bytes = gerar_audio_acessibilidade(full_response)
+                if audio_bytes:
+                    st.audio(audio_bytes, format="audio/mp3")
+                
+            except Exception as e:
+                if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+                    st.warning("⚠️ Nossa inteligência artificial está atendendo a muitos alunos agora! Por favor, aguarde cerca de 20 segundos e tente novamente.")
+                else:
+                    st.error(f"Ocorreu um erro de conexão. Detalhe técnico: {e}")
+
+# --- 2ª OPÇÃO: METODOLOGIA ---
+elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
+    st.subheader("📖 Assistente de Projetos Científicos e TCC")
+    st.warning("⚠️ Esta ferramenta funciona exclusivamente como um **guia estrutural**. A IA não redigirá trabalhos prontos.")
+    tema_usuario = st.text_input("Digite a ideia central ou o tema do seu trabalho:")
+    botao_gerar = st.button("🚀 Gerar Estrutura")
+    
+    if botao_gerar and tema_usuario:
+        PROMPT_METODOLOGIA = f"Atue como orientador de metodologia. Estruture em tópicos o tema: '{tema_usuario}'. Formato: Formato, Título, Problema, Objetivos, Sumário."
+        with st.spinner("Analisando o tema..."):
+            try:
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash', 
+                    contents=PROMPT_METODOLOGIA,
+                    config=types.GenerateContentConfig(temperature=0.4) 
+                )
+                st.markdown("---")
+                st.write(response.text)
+                
+                # Áudio para a Metodologia
+                audio_bytes = gerar_audio_acessibilidade(response.text)
+                if audio_bytes:
+                    st.audio(audio_bytes, format="audio/mp3")
+            except Exception as e:
+                if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+                    st.warning("⚠️ Limite de requisições atingido. Aguarde 20 segundos e tente novamente.")
+                else:
+                    st.error(f"Erro na comunicação com o servidor. Detalhe técnico para depuração: {e}")
+
+# --- 3ª OPÇÃO: LEGISLAÇÃO ---
+elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
+    st.subheader("📜 Extrator da Letra da Lei")
+    st.write("Consulte o texto exato de artigos de Leis, Códigos ou da Constituição Federal utilizando busca em tempo real.")
+
+    if pedido_lei := st.chat_input("Ex: Artigo 5 da CF, Lei da LGPD..."):
+        with st.chat_message("user"):
+            st.markdown(pedido_lei)
+
+        with st.chat_message("assistant"):
+            PROMPT_LEGISLACAO = f"Extraia o texto literal exato e atualizado da norma: '{pedido_lei}'. Use blocos de citação."
+            with st.spinner("Buscando texto oficial atualizado..."):
+                try:
+                    response = client.models.generate_content(
+                        model='gemini-2.5-flash',
+                        contents=PROMPT_LEGISLACAO,
+                        config=types.GenerateContentConfig(tools=[{"google_search": {}}], temperature=0.3)
+                    )
+                    st.markdown("### 🏛️ Texto Legal Encontrado")
+                    st.write(response.text)
+                    
+                    # Áudio para a Legislação
+                    audio_bytes = gerar_audio_acessibilidade(response.text)
+                    if audio_bytes:
+                        st.audio(audio_bytes, format="audio/mp3")
+                except Exception as e:
+                    if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+                        st.warning("⚠️ Servidores ocupados no momento. Aguarde uns 20 segundinhos e tente a busca novamente.")
+                    else:
+                        st.error(f"Falha ao buscar a lei. Detalhe técnico: {e}")
+
+# --- 4ª OPÇÃO: DICIONÁRIO COM CACHE ---
+elif opcao_menu == "📔 Dicionário Jurídico e Latim":
+    st.subheader("📔 Dicionário Jurídico e Expressões em Latim")
+    st.write("Digite um termo técnico ou expressão em latim para obter a tradução e o significado aplicado ao Direito.")
+
+    if termo_busca := st.chat_input("Ex: Erga omnes, Vacatio Legis..."):
+        with st.chat_message("user"):
+            st.markdown(termo_busca)
+
+        with st.chat_message("assistant"):
+            with st.spinner(f"Buscando o significado de '{termo_busca}'..."):
+                try:
+                    resultado = consultar_dicionario_cache(termo_busca.strip().lower())
+                    st.markdown(resultado)
+                    
+                    # Áudio para o Dicionário
+                    audio_bytes = gerar_audio_acessibilidade(resultado)
+                    if audio_bytes:
+                        st.audio(audio_bytes, format="audio/mp3")
+                except Exception as e:
+                    if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+                        st.warning("⚠️ Muitos estudantes consultando o dicionário agora! Aguarde 20 segundos e tente novamente.")
+                    else:
+                        st.error(f"Erro ao buscar o termo. Detalhe técnico: {e}")
