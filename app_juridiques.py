@@ -61,7 +61,18 @@ st.markdown("""
     }
     div.stButton > button:hover { background-color: #a38446; color: white; }
     div[data-baseweb="select"] { border: 1px solid #c5a059; border-radius: 8px; }
-    [data-testid="stChatMessage"] { border-radius: 15px; background-color: #1e2430; margin-bottom: 12px; padding: 14px; color: #FAFAFA; }
+    
+    /* CORREÇÃO DEFINITIVA DO CONTRASTE */
+    [data-testid="stChatMessage"] { 
+        border-radius: 15px; 
+        background-color: #1e2430 !important; 
+        margin-bottom: 12px; 
+        padding: 14px; 
+    }
+    /* A mágica acontece aqui: força todos os elementos internos a ficarem brancos */
+    [data-testid="stChatMessage"] * { 
+        color: #FAFAFA !important; 
+    }
     </style>
     """, unsafe_allow_html=True)
 
