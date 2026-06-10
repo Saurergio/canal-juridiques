@@ -61,18 +61,7 @@ st.markdown("""
     }
     div.stButton > button:hover { background-color: #a38446; color: white; }
     div[data-baseweb="select"] { border: 1px solid #c5a059; border-radius: 8px; }
-    
-    /* CORREÇÃO DEFINITIVA DO CONTRASTE */
-    [data-testid="stChatMessage"] { 
-        border-radius: 15px; 
-        background-color: #1e2430 !important; 
-        margin-bottom: 12px; 
-        padding: 14px; 
-    }
-    /* A mágica acontece aqui: força todos os elementos internos a ficarem brancos */
-    [data-testid="stChatMessage"] * { 
-        color: #FAFAFA !important; 
-    }
+    [data-testid="stChatMessage"] { border-radius: 15px; background-color: #1e2430; margin-bottom: 12px; padding: 14px; color: #FAFAFA; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -137,18 +126,54 @@ def consultar_dicionario_cache(termo):
     return resposta.text
 
 # --- 1ª OPÇÃO: TUTOR IA ---
-# --- BLOCO DE DIAGNÓSTICO ---
-if prompt := st.chat_input("Teste de Diagnóstico - Digite algo curto:"):
-    with st.chat_message("assistant"):
-        try:
-            # Teste apenas a geração de texto pura (sem áudio, sem formatação complexa)
-            model = client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=prompt
-            )
-            st.write(model.text)
-        except Exception as e:
-            st.error(f"Erro na camada de IA: {e}")
+if opcao_menu == "💬 Tutor de Inteligência Artificial":
+    PROMPT_TUTOR = "Você é o 'Tutor Jurídico Acadêmico' do Canal Juridiquês. Quebre a explicação em:\n1) Conceito Puro;\n2) Exemplo Prático;\n3) Fundamentação. Use Markdown."
+
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    # Renderiza o histórico e fixa os botões
+    for i, msg in enumerate(st.session_state.messages):
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+            if msg["role"] == "assistant":
+                if msg.get("audio"):
+                    st.audio(msg["audio"], format="audio/mp3")
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.download_button("📥 Salvar (.txt)", msg["content"], file_name=limpar_nome_arquivo(msg.get("prompt", "resposta")), key=f"dl_tutor_{i}")
+                with col2:
+                    texto_zap = f"*Canal Juridiquês*\n\n*Pergunta:* {msg.get('prompt', '')}\n\n*Resposta:* {msg['content']}"
+                    st.link_button("📤 Compartilhar", f"https://api.whatsapp.com/send?text={urllib.parse.quote(texto_zap)}")
+
+    if prompt := st.chat_input("Digite sua dúvida jurídica aqui..."):
+        # Impede renderização dupla do usuário
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"): st.markdown(prompt)
+
+        with st.chat_message("assistant"):
+            message_placeholder = st.empty()
+            full_response = ""
+            try:
+                historico_api = [types.Content(role="user" if m["role"] == "user" else "model", parts=[types.Part.from_text(text=m["content"])]) for m in st.session_state.messages[:-1]]
+                response_stream = client.models.generate_content_stream(
+                    model='gemini-2.5-flash',
+                    contents=[*historico_api, types.Content(role="user", parts=[types.Part.from_text(text=prompt)])],
+                    config=types.GenerateContentConfig(system_instruction=PROMPT_TUTOR, temperature=0.6)
+                )
+                for chunk in response_stream:
+                    if chunk.text:
+                        full_response += chunk.text
+                        message_placeholder.markdown(full_response + "▌")
+                message_placeholder.markdown(full_response)
+                
+                audio_bytes = gerar_audio_acessibilidade(full_response)
+                # Salva TUDO no estado para não sumir no F5
+                st.session_state.messages.append({"role": "assistant", "content": full_response, "audio": audio_bytes, "prompt": prompt})
+                st.rerun() # Força o recarregamento limpo com os botões
+                
+            except Exception as e:
+                st.error("⚠️ O servidor está sob alta demanda ou ocorreu um erro. Tente novamente.")
 
 # --- 2ª OPÇÃO: METODOLOGIA ---
 elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
