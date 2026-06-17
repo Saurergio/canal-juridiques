@@ -243,19 +243,20 @@ elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
         with st.spinner("Buscando texto oficial..."):
             try:
                 # Prompt BISO: Diretrizes de formatação adaptadas para textos legais
-                prompt_legislacao = f"""
-Atue como um repositório legislativo oficial. Retorne EXCLUSIVAMENTE o texto literal da seguinte norma, sem comentários ou explicações: '{pedido_lei}'.
+            prompt_legislacao = f"""
+Atue como um repositório legislativo oficial. Busque o texto literal da seguinte norma: '{pedido_lei}'.
 
 DIRETRIZES DE FORMATAÇÃO ESTRITA (MARKDOWN):
 1. Pule SEMPRE duas linhas entre os Artigos para criar respiro visual.
 2. Use negrito para destacar a numeração (ex: **Art. 5º**, **§ 1º**, **I -**, **a)**).
 3. Utilize recuo (espaçamento) para incisos e alíneas, mantendo a hierarquia visual da lei.
 4. Mantenha o texto exato e literal, aplicando apenas a marcação visual para facilitar a leitura na tela.
+5. REGRA DE SEGURANÇA: Se você não possuir o texto exato desta norma em sua base de dados, não invente. Responda APENAS: "⚠️ Desculpe, não consegui localizar o texto exato desta norma com 100% de precisão na minha base de dados."
 """
                 response = client.models.generate_content(
                     model='gemini-2.5-flash', 
                     contents=prompt_legislacao, 
-                    config=types.GenerateContentConfig(temperature=0.0)
+                    config=types.GenerateContentConfig(temperature=0.1) # Subimos de 0.0 para 0.1
                 )
                 
                 if not response.text:
