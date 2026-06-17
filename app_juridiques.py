@@ -184,23 +184,55 @@ elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
     if st.button("🚀 Gerar Estrutura") and tema_usuario:
         with st.spinner("Analisando o tema..."):
             try:
-                response = client.models.generate_content(model='gemini-2.5-flash', contents=f"Estruture em tópicos científicos o tema: '{tema_usuario}'.", config=types.GenerateContentConfig(temperature=0.4))
-                audio = gerar_audio_acessibilidade(response.text)
-                st.session_state.metodologia = {"tema": tema_usuario, "texto": response.text, "audio": audio}
+                # Prompt BISO: Injetamos as diretrizes estritas de diagramação e formatação
+                prompt_tcc = f"""
+Atue como um orientador acadêmico de Direito. Gere a estrutura de tópicos científicos para um TCC com o tema: '{tema_usuario}'.
+
+DIRETRIZES DE FORMATAÇÃO ESTRITA (MARKDOWN):
+1. Pule SEMPRE duas linhas entre os capítulos principais (I, II, III...) para criar respiro visual.
+2. Use negrito (**texto**) exclusivamente nos títulos e subtítulos.
+3. Utilize obrigatoriamente marcadores de lista (bullet points) ou numeração recuada para os itens e subitens.
+4. Não gere blocos de texto contínuos. A diagramação deve ser hierárquica, espaçada e focada na legibilidade do aluno.
+"""
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash', 
+                    contents=prompt_tcc, 
+                    config=types.GenerateContentConfig(temperature=0.4)
+                )
+                
+                if not response.text:
+                    raise ValueError("A IA retornou um objeto vazio.")
+
+                # Trava de Performance: Salvamos o texto, mas deixamos o áudio como nulo (None)
+                st.session_state.metodologia = {"tema": tema_usuario, "texto": response.text, "audio": None}
+                
             except Exception as e:
-                st.error("Erro na comunicação.")
+                # Erro detalhado para facilitar troubleshooting futuro
+                st.error(f"Erro na comunicação. Detalhe técnico: {e}")
 
     # Exibe o resultado gravado na memória
     if st.session_state.metodologia:
         st.markdown("---")
         st.write(st.session_state.metodologia["texto"])
-        if st.session_state.metodologia["audio"]: st.audio(st.session_state.metodologia["audio"], format="audio/mp3")
+        
+        # --- NOVO FLUXO DE ÁUDIO SOB DEMANDA ---
+        if st.session_state.metodologia["audio"]:
+            st.audio(st.session_state.metodologia["audio"], format="audio/mp3")
+        else:
+            # Botão com key única para não conflitar com a aba de Legislação
+            if st.button("🔊 Gerar Áudio da Estrutura", key="btn_gerar_audio_met"):
+                with st.spinner("Processando áudio..."):
+                    novo_audio = gerar_audio_acessibilidade(st.session_state.metodologia["texto"])
+                    st.session_state.metodologia["audio"] = novo_audio
+                    st.rerun()
+
         col1, col2 = st.columns(2)
         with col1:
-            st.download_button("📥 Salvar (.txt)", st.session_state.metodologia["texto"], file_name=limpar_nome_arquivo(st.session_state.metodologia["tema"]), key="dl_met")
+            # Correção proativa: adicionado str() para evitar erro de tipagem
+            st.download_button("📥 Salvar (.txt)", str(st.session_state.metodologia["texto"]), file_name=limpar_nome_arquivo(st.session_state.metodologia["tema"]), key="dl_met")
         with col2:
-            st.link_button("📤 Compartilhar", f"https://api.whatsapp.com/send?text={urllib.parse.quote(st.session_state.metodologia['texto'])}")
-
+            # Correção proativa: adicionado str() para evitar erro de tipagem no link
+            st.link_button("📤 Compartilhar", f"https://api.whatsapp.com/send?text={urllib.parse.quote(str(st.session_state.metodologia['texto']))}")
 # --- 3ª OPÇÃO: LEGISLAÇÃO ---
 elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
     st.subheader("📜 Extrator da Letra da Lei")
