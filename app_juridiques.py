@@ -233,6 +233,7 @@ DIRETRIZES DE FORMATAÇÃO ESTRITA (MARKDOWN):
         with col2:
             # Correção proativa: adicionado str() para evitar erro de tipagem no link
             st.link_button("📤 Compartilhar", f"https://api.whatsapp.com/send?text={urllib.parse.quote(str(st.session_state.metodologia['texto']))}")
+
 # --- 3ª OPÇÃO: LEGISLAÇÃO ---
 elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
     st.subheader("📜 Extrator da Letra da Lei")
@@ -241,9 +242,19 @@ elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
     if pedido_lei := st.chat_input("Ex: Artigo 5 da CF, Lei da LGPD..."):
         with st.spinner("Buscando texto oficial..."):
             try:
+                # Prompt BISO: Diretrizes de formatação adaptadas para textos legais
+                prompt_legislacao = f"""
+Atue como um repositório legislativo oficial. Retorne EXCLUSIVAMENTE o texto literal da seguinte norma, sem comentários ou explicações: '{pedido_lei}'.
+
+DIRETRIZES DE FORMATAÇÃO ESTRITA (MARKDOWN):
+1. Pule SEMPRE duas linhas entre os Artigos para criar respiro visual.
+2. Use negrito para destacar a numeração (ex: **Art. 5º**, **§ 1º**, **I -**, **a)**).
+3. Utilize recuo (espaçamento) para incisos e alíneas, mantendo a hierarquia visual da lei.
+4. Mantenha o texto exato e literal, aplicando apenas a marcação visual para facilitar a leitura na tela.
+"""
                 response = client.models.generate_content(
                     model='gemini-2.5-flash', 
-                    contents=f"Atue como um repositório legislativo oficial. Retorne EXCLUSIVAMENTE o texto literal da seguinte norma, sem comentários ou explicações: '{pedido_lei}'.", 
+                    contents=prompt_legislacao, 
                     config=types.GenerateContentConfig(temperature=0.0)
                 )
                 
@@ -280,7 +291,7 @@ elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
             with col1:
                 st.download_button("📥 Salvar (.txt)", str(st.session_state.legislacao["texto"]), file_name=limpar_nome_arquivo(st.session_state.legislacao["pedido"]), key="dl_leg")
             with col2:
-                st.link_button("📤 Compartilhar", f"https://api.whatsapp.com/send?text={urllib.parse.quote(str(st.session_state.legislacao['texto']))}")
+                st.link_button("📤 Compartil
 
 # --- 4ª OPÇÃO: DICIONÁRIO ---
 elif opcao_menu == "📔 Dicionário Jurídico e Latim":
