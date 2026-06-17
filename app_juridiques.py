@@ -291,7 +291,7 @@ DIRETRIZES DE FORMATAÇÃO ESTRITA (MARKDOWN):
             with col1:
                 st.download_button("📥 Salvar (.txt)", str(st.session_state.legislacao["texto"]), file_name=limpar_nome_arquivo(st.session_state.legislacao["pedido"]), key="dl_leg")
             with col2:
-                st.link_button("📤 Compartil
+                st.link_button("📤 Compartilhar", f"https://api.whatsapp.com/send?text={urllib.parse.quote(str(st.session_state.legislacao['texto']))}")
 
 # --- 4ª OPÇÃO: DICIONÁRIO ---
 elif opcao_menu == "📔 Dicionário Jurídico e Latim":
