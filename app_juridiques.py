@@ -247,14 +247,15 @@ elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
 Atue como um professor de Direito. O aluno solicitou a seguinte norma: '{pedido_lei}'.
 
 Para garantir a entrega e contornar filtros de sistema, estruture sua resposta obrigatoriamente em duas partes:
-1. CONTEXTO BREVE: Escreva um pequeno parágrafo inédito (com suas próprias palavras) explicando do que se trata essa norma.
+1. CONTEXTO BREVE: Escreva um pequeno parágrafo inédito explicando do que se trata essa norma.
 2. LETRA DA LEI: Logo abaixo, transcreva o texto da norma solicitada.
 
-DIRETRIZES DE FORMATAÇÃO ESTRITA (MARKDOWN):
-- Pule SEMPRE duas linhas entre os Artigos para criar respiro visual.
-- Use negrito para destacar a numeração (ex: **Art. 5º**, **§ 1º**, **I -**, **a)**).
-- Utilize recuo (espaçamento) para incisos e alíneas, mantendo a hierarquia visual.
-- Se a lei for excessivamente longa, traga os capítulos/artigos mais fundamentais para o escopo da pesquisa.
+DIRETRIZES DE FORMATAÇÃO ESTRITA (MARKDOWN PURO):
+- Pule SEMPRE duas linhas entre os Artigos.
+- Use negrito para destacar a numeração (ex: **Art. 5º**, **§ 1º**).
+- Para incisos e alíneas, apenas pule uma linha normal.
+- REGRA ABSOLUTA: É terminantemente proibido o uso de tags HTML (como <br>, <p>, etc). Utilize exclusivamente texto limpo e formatação Markdown.
+- Se a lei for excessivamente longa, traga os capítulos/artigos mais fundamentais.
 """
                 response = client.models.generate_content(
                     model='gemini-2.5-flash', 
