@@ -208,12 +208,25 @@ elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
 
     if pedido_lei := st.chat_input("Ex: Artigo 5 da CF, Lei da LGPD..."):
         with st.spinner("Buscando texto oficial..."):
-            try:
-                response = client.models.generate_content(model='gemini-2.5-flash', contents=f"Extraia o texto literal exato da norma: '{pedido_lei}'.", config=types.GenerateContentConfig(tools=[{"google_search": {}}], temperature=0.3))
+          try:
+                # Ajustamos o prompt e baixamos a temperatura para 0.0 (máxima precisão, zero criatividade)
+                # Removemos o google_search para evitar o erro de Function Calling
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash', 
+                    contents=f"Atue como um repositório legislativo oficial. Retorne EXCLUSIVAMENTE o texto literal da seguinte norma, sem comentários ou explicações: '{pedido_lei}'.", 
+                    config=types.GenerateContentConfig(temperature=0.0)
+                )
+                
+                # Trava de segurança: se mesmo assim vier vazio, forçamos um erro para não quebrar a tela
+                if not response.text:
+                    raise ValueError("A IA retornou um objeto vazio em vez de texto.")
+
                 audio = gerar_audio_acessibilidade(response.text)
                 st.session_state.legislacao = {"pedido": pedido_lei, "texto": response.text, "audio": audio}
-            except Exception:
-                st.error("Falha ao buscar a lei.")
+                
+            except Exception as e:
+                # Agora o erro vai confessar o que deu errado na tela, em vez de ficar mudo
+                st.error(f"Falha ao processar a requisição. Detalhe técnico: {e}")
 
     # Exibe o resultado gravado na memória
     if st.session_state.legislacao:
