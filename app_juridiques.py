@@ -244,18 +244,20 @@ elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
             try:
                 # O bloco try exige que tudo abaixo dele tenha 4 espaços a mais (um recuo extra)
                 prompt_legislacao = f"""
-Atue como um professor de Direito. O aluno solicitou a seguinte norma: '{pedido_lei}'.
+Atue como um curador jurídico do Canal Juridiquês. O aluno deseja consultar a seguinte norma: '{pedido_lei}'.
 
-Para garantir a entrega e contornar filtros de sistema, estruture sua resposta obrigatoriamente em duas partes:
-1. CONTEXTO BREVE: Escreva um pequeno parágrafo inédito explicando do que se trata essa norma.
-2. LETRA DA LEI: Logo abaixo, transcreva o texto da norma solicitada.
+Para garantir a precisão absoluta da fonte, siga estritamente esta estrutura:
 
-DIRETRIZES DE FORMATAÇÃO ESTRITA (MARKDOWN PURO):
-- Pule SEMPRE duas linhas entre os Artigos.
-- Use negrito para destacar a numeração (ex: **Art. 5º**, **§ 1º**).
-- Para incisos e alíneas, apenas pule uma linha normal.
-- REGRA ABSOLUTA: É terminantemente proibido o uso de tags HTML (como <br>, <p>, etc). Utilize exclusivamente texto limpo e formatação Markdown.
-- Se a lei for excessivamente longa, traga os capítulos/artigos mais fundamentais.
+1. SÍNTESE DA NORMA: Escreva um resumo objetivo e didático (com suas próprias palavras, entre 2 e 3 parágrafos) explicando do que se trata essa norma, artigo ou inciso, e qual é o seu principal impacto jurídico.
+2. FONTE OFICIAL: Indique como o aluno pode encontrar o texto na íntegra. IMPORTANTE: Só forneça URLs diretas (links) se você tiver 100% de certeza de que são hiperlinks reais e funcionais dos portais Planalto, Senado ou LexML. Se houver qualquer dúvida, forneça apenas a instrução de busca (Ex: "Pesquise por 'Lei 13.709/2018 Planalto' no Google").
+
+TRAVAS DE SEGURANÇA (ANTI-ALUCINAÇÃO) - REGRA ABSOLUTA:
+- O ecossistema jurídico não tolera invenções. Você está TERMINANTEMENTE PROIBIDO de criar leis falsas, inventar números de artigos ou associar conceitos incorretos a uma norma.
+- Se o usuário pedir uma norma que não existe (ex: "Artigo 900 da CF"), uma lei obscura, ou se sua confiança no dado for baixa, NÃO TENTE ADIVINHAR. Interrompa a geração do resumo e responda APENAS: "⚠️ Para garantir sua segurança jurídica, informo que não possuo dados com o nível de precisão exigido para sintetizar esta norma específica. Recomendo a busca direta no portal oficial do Planalto ou LexML."
+
+DIRETRIZES DE FORMATAÇÃO (MARKDOWN PURO):
+- Use negrito para dar destaque a termos jurídicos importantes.
+- Proibido o uso de tags HTML (como <br>).
 """
                 response = client.models.generate_content(
                     model='gemini-2.5-flash', 
