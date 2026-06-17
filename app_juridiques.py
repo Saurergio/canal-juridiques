@@ -259,9 +259,12 @@ DIRETRIZES DE FORMATAÇÃO ESTRITA (MARKDOWN):
                     config=types.GenerateContentConfig(temperature=0.1)
                 )
                 
+                # MODO AUDITORIA: Capturando o real motivo do bloqueio da API
                 if not response.text:
-                    raise ValueError("A IA retornou um objeto vazio em vez de texto.")
-
+                    motivo = "Desconhecido"
+                    if response.candidates:
+                        motivo = response.candidates[0].finish_reason
+                    raise ValueError(f"A API do Google bloqueou a resposta. Motivo interno (Finish Reason): {motivo}")
                 st.session_state.legislacao = {"pedido": pedido_lei, "texto": response.text, "audio": None}
                 
             except Exception as e:
