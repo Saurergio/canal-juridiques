@@ -224,7 +224,7 @@ elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
                 audio = gerar_audio_acessibilidade(response.text)
                 st.session_state.legislacao = {"pedido": pedido_lei, "texto": response.text, "audio": audio}
                 
-            except Exception as e:
+        except Exception as e:
                 # Agora o erro vai confessar o que deu errado na tela, em vez de ficar mudo
                 st.error(f"Falha ao processar a requisição. Detalhe técnico: {e}")
 
