@@ -202,7 +202,6 @@ elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
             st.link_button("📤 Compartilhar", f"https://api.whatsapp.com/send?text={urllib.parse.quote(st.session_state.metodologia['texto'])}")
 
 # --- 3ª OPÇÃO: LEGISLAÇÃO ---
-# --- 3ª OPÇÃO: LEGISLAÇÃO ---
 elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
     st.subheader("📜 Extrator da Letra da Lei")
     if 'legislacao' not in st.session_state: st.session_state.legislacao = None
@@ -219,8 +218,8 @@ elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
                 if not response.text:
                     raise ValueError("A IA retornou um objeto vazio em vez de texto.")
 
-                audio = gerar_audio_acessibilidade(response.text)
-                st.session_state.legislacao = {"pedido": pedido_lei, "texto": response.text, "audio": audio}
+                # A MÁGICA ACONTECE AQUI: Salvamos o texto, mas deixamos o áudio como nulo (None)
+                st.session_state.legislacao = {"pedido": pedido_lei, "texto": response.text, "audio": None}
                 
             except Exception as e:
                 st.error(f"Falha ao processar a requisição. Detalhe técnico: {e}")
@@ -230,7 +229,21 @@ elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
         with st.chat_message("user"): st.markdown(st.session_state.legislacao["pedido"])
         with st.chat_message("assistant"):
             st.write(st.session_state.legislacao["texto"])
-            if st.session_state.legislacao["audio"]: st.audio(st.session_state.legislacao["audio"], format="audio/mp3")
+            
+            # --- NOVO FLUXO DE ÁUDIO SOB DEMANDA ---
+            if st.session_state.legislacao["audio"]:
+                # Se o áudio já existe na memória, apenas exibe o player
+                st.audio(st.session_state.legislacao["audio"], format="audio/mp3")
+            else:
+                # Se não existe, cria um botão para gerar
+                if st.button("🔊 Gerar Áudio de Acessibilidade", key="btn_gerar_audio"):
+                    with st.spinner("Processando áudio..."):
+                        # Só chama a função pesada se o usuário clicar
+                        novo_audio = gerar_audio_acessibilidade(st.session_state.legislacao["texto"])
+                        st.session_state.legislacao["audio"] = novo_audio
+                        st.rerun() # Atualiza a interface instantaneamente para trocar o botão pelo player
+
+            # Botões de utilidade
             col1, col2 = st.columns(2)
             with col1:
                 st.download_button("📥 Salvar (.txt)", str(st.session_state.legislacao["texto"]), file_name=limpar_nome_arquivo(st.session_state.legislacao["pedido"]), key="dl_leg")
