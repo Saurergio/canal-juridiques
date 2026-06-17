@@ -223,7 +223,7 @@ elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
             if st.session_state.legislacao["audio"]: st.audio(st.session_state.legislacao["audio"], format="audio/mp3")
             col1, col2 = st.columns(2)
             with col1:
-                st.download_button("📥 Salvar (.txt)", st.session_state.legislacao["texto"], file_name=limpar_nome_arquivo(st.session_state.legislacao["pedido"]), key="dl_leg")
+                st.download_button("📥 Salvar (.txt)", str(st.session_state.legislacao["texto"]), file_name=limpar_nome_arquivo(st.session_state.legislacao["pedido"]), key="dl_leg")
             with col2:
                 st.link_button("📤 Compartilhar", f"https://api.whatsapp.com/send?text={urllib.parse.quote(st.session_state.legislacao['texto'])}")
 
