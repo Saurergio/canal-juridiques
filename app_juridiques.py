@@ -242,8 +242,8 @@ elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
     if pedido_lei := st.chat_input("Ex: Artigo 5 da CF, Lei da LGPD..."):
         with st.spinner("Buscando texto oficial..."):
             try:
-                # Prompt BISO: Diretrizes de formatação adaptadas para textos legais
-            prompt_legislacao = f"""
+                # O bloco try exige que tudo abaixo dele tenha 4 espaços a mais (um recuo extra)
+                prompt_legislacao = f"""
 Atue como um repositório legislativo oficial. Busque o texto literal da seguinte norma: '{pedido_lei}'.
 
 DIRETRIZES DE FORMATAÇÃO ESTRITA (MARKDOWN):
@@ -256,19 +256,16 @@ DIRETRIZES DE FORMATAÇÃO ESTRITA (MARKDOWN):
                 response = client.models.generate_content(
                     model='gemini-2.5-flash', 
                     contents=prompt_legislacao, 
-                    config=types.GenerateContentConfig(temperature=0.1) # Subimos de 0.0 para 0.1
+                    config=types.GenerateContentConfig(temperature=0.1)
                 )
                 
                 if not response.text:
                     raise ValueError("A IA retornou um objeto vazio em vez de texto.")
 
-                # A MÁGICA ACONTECE AQUI: Salvamos o texto, mas deixamos o áudio como nulo (None)
                 st.session_state.legislacao = {"pedido": pedido_lei, "texto": response.text, "audio": None}
                 
             except Exception as e:
-                st.error(f"Falha ao processar a requisição. Detalhe técnico: {e}")
-
-    # Exibe o resultado gravado na memória
+                st.error(f"Falha ao processar a requisição. Detalhe técnico: {e}")    # Exibe o resultado gravado na memória
     if st.session_state.legislacao:
         with st.chat_message("user"): st.markdown(st.session_state.legislacao["pedido"])
         with st.chat_message("assistant"):
