@@ -4,6 +4,7 @@ Versão: 1.0.19
 Descrição: Persistência de estado (Correção do botão que some) e botão genérico de Compartilhar.
 Autoria: Sergio Moreira Neri
 """
+import os
 import streamlit as st
 from google import genai
 from google.genai import types
@@ -112,13 +113,6 @@ opcao_menu = st.selectbox(
 st.markdown("<br>", unsafe_allow_html=True)
 
 # --- INICIALIZAÇÃO DA API ---
-try:
-    GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
-    client = genai.Client(api_key=GEMINI_API_KEY)
-except Exception:
-    st.error("Erro: A chave 'GEMINI_API_KEY' não foi encontrada nos Secrets.")
-    st.stop()
-
 @st.cache_data(ttl=86400, show_spinner=False)
 def consultar_dicionario_cache(termo):
     PROMPT = f"Você é um Dicionário Jurídico dinâmico do Canal Juridiquês. Explique de forma objetiva o termo: '{termo}'. Se for latim, traduza. Use máximo dois parágrafos e dê um exemplo."
