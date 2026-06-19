@@ -1,14 +1,13 @@
 """
 Projeto: Canal Juridiquês
-Versão: 1.0.19
-Descrição: Persistência de estado (Correção do botão que some) e botão genérico de Compartilhar.
+Versão: 1.0.20
+Descrição: Correção definitiva de indentação no menu de legislação e inserção global da função de cache do dicionário pós-migração Render.
 Autoria: Sergio Moreira Neri
 """
 import os
 import streamlit as st
 from google import genai
 from google.genai import types
-import os
 from gtts import gTTS
 import io
 import base64
@@ -94,7 +93,7 @@ with st.sidebar:
         
     st.markdown("---")
     st.header("📚 Indicações")
-    st.write("Apoie o nosso projeto gratuito utilizando os links dos nossos parceiros!")
+    st.write("Apoie o nosso projeto gratuito utilizando links dos nossos parceiros!")
     st.markdown("### 📙 Vade Mecum Atualizado")
     st.link_button("👉 Ver na Amazon Brasil", "https://www.amazon.com.br/s?k=vade+mecum&i=books")
     st.markdown("---")
@@ -117,8 +116,19 @@ try:
     GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY") or st.secrets.get("GEMINI_API_KEY")
     client = genai.Client(api_key=GEMINI_API_KEY)
 except Exception:
-    st.error("Erro: A chave 'GEMINI_API_KEY' não foi encontrada nos Secrets.")
+    st.error("Erro: A chave 'GEMINI_API_KEY' não foi encontrada nos Variable Environments ou Secrets.")
     st.stop()
+
+# --- FUNÇÃO GLOBAL DO DICIONÁRIO (COM CACHE) ---
+@st.cache_data(ttl=86400, show_spinner=False)
+def consultar_dicionario_cache(termo):
+    PROMPT = f"Você é um Dicionário Jurídico dinâmico do Canal Juridiquês. Explique de forma objetiva o termo: '{termo}'. Se for latim, traduza. Use máximo dois parágrafos."
+    resposta = client.models.generate_content(
+        model='gemini-2.5-flash', 
+        contents=PROMPT, 
+        config=types.GenerateContentConfig(temperature=0.3)
+    )
+    return resposta.text
 
 # --- 1ª OPÇÃO: TUTOR IA ---
 if opcao_menu == "💬 Tutor de Inteligência Artificial":
@@ -142,7 +152,6 @@ if opcao_menu == "💬 Tutor de Inteligência Artificial":
                     st.link_button("📤 Compartilhar", f"https://api.whatsapp.com/send?text={urllib.parse.quote(texto_zap)}")
 
     if prompt := st.chat_input("Digite sua dúvida jurídica aqui..."):
-        # Impede renderização dupla do usuário
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"): st.markdown(prompt)
 
@@ -163,9 +172,8 @@ if opcao_menu == "💬 Tutor de Inteligência Artificial":
                 message_placeholder.markdown(full_response)
                 
                 audio_bytes = gerar_audio_acessibilidade(full_response)
-                # Salva TUDO no estado para não sumir no F5
                 st.session_state.messages.append({"role": "assistant", "content": full_response, "audio": audio_bytes, "prompt": prompt})
-                st.rerun() # Força o recarregamento limpo com os botões
+                st.rerun()
                 
             except Exception as e:
                 st.error("⚠️ O servidor está sob alta demanda ou ocorreu um erro. Tente novamente.")
@@ -179,7 +187,6 @@ elif opcao_menu == "📖 Guia de Metodologia de Pesquisa":
     if st.button("🚀 Gerar Estrutura") and tema_usuario:
         with st.spinner("Analisando o tema..."):
             try:
-                # Prompt BISO: Injetamos as diretrizes estritas de diagramação e formatação
                 prompt_tcc = f"""
 Atue como um orientador acadêmico de Direito. Gere a estrutura de tópicos científicos para um TCC com o tema: '{tema_usuario}'.
 
@@ -198,11 +205,9 @@ DIRETRIZES DE FORMATAÇÃO ESTRITA (MARKDOWN):
                 if not response.text:
                     raise ValueError("A IA retornou um objeto vazio.")
 
-                # Trava de Performance: Salvamos o texto, mas deixamos o áudio como nulo (None)
                 st.session_state.metodologia = {"tema": tema_usuario, "texto": response.text, "audio": None}
                 
             except Exception as e:
-                # Erro detalhado para facilitar troubleshooting futuro
                 st.error(f"Erro na comunicação. Detalhe técnico: {e}")
 
     # Exibe o resultado gravado na memória
@@ -210,11 +215,10 @@ DIRETRIZES DE FORMATAÇÃO ESTRITA (MARKDOWN):
         st.markdown("---")
         st.write(st.session_state.metodologia["texto"])
         
-        # --- NOVO FLUXO DE ÁUDIO SOB DEMANDA ---
+        # Fluxo de áudio sob demanda
         if st.session_state.metodologia["audio"]:
             st.audio(st.session_state.metodologia["audio"], format="audio/mp3")
         else:
-            # Botão com key única para não conflitar com a aba de Legislação
             if st.button("🔊 Gerar Áudio da Estrutura", key="btn_gerar_audio_met"):
                 with st.spinner("Processando áudio..."):
                     novo_audio = gerar_audio_acessibilidade(st.session_state.metodologia["texto"])
@@ -223,10 +227,8 @@ DIRETRIZES DE FORMATAÇÃO ESTRITA (MARKDOWN):
 
         col1, col2 = st.columns(2)
         with col1:
-            # Correção proativa: adicionado str() para evitar erro de tipagem
             st.download_button("📥 Salvar (.txt)", str(st.session_state.metodologia["texto"]), file_name=limpar_nome_arquivo(st.session_state.metodologia["tema"]), key="dl_met")
         with col2:
-            # Correção proativa: adicionado str() para evitar erro de tipagem no link
             st.link_button("📤 Compartilhar", f"https://api.whatsapp.com/send?text={urllib.parse.quote(str(st.session_state.metodologia['texto']))}")
 
 # --- 3ª OPÇÃO: LEGISLAÇÃO ---
@@ -237,7 +239,6 @@ elif opcao_menu == "📜 Consulta à Legislação e Letra da Lei":
     if pedido_lei := st.chat_input("Ex: Artigo 5 da CF, Lei da LGPD..."):
         with st.spinner("Buscando texto oficial..."):
             try:
-                # O bloco try exige que tudo abaixo dele tenha 4 espaços a mais (um recuo extra)
                 prompt_legislacao = f"""
 Atue como um curador jurídico do Canal Juridiquês. O aluno deseja consultar a seguinte norma: '{pedido_lei}'.
 
@@ -248,7 +249,7 @@ Para garantir a precisão absoluta da fonte, siga estritamente esta estrutura:
 
 TRAVAS DE SEGURANÇA (ANTI-ALUCINAÇÃO) - REGRA ABSOLUTA:
 - O ecossistema jurídico não tolera invenções. Você está TERMINANTEMENTE PROIBIDO de criar leis falsas, inventar números de artigos ou associar conceitos incorretos a uma norma.
-- Se o usuário pedir uma norma que não existe (ex: "Artigo 900 da CF"), uma lei obscura, ou se sua confiança no dado for baixa, NÃO TENTE ADIVINHAR. Interrompa a geração do resumo e responda APENAS: "⚠️ Para garantir sua segurança jurídica, informo que não possuo dados com o nível de precisão exigido para sintetizar esta norma específica. Recomendo a busca direta no portal oficial do Planalto ou LexML."
+- Se o usuário pedir uma norma que não existe (ex: "Artigo 900 da CF"), uma lei obscura, ou se sua confiança no dado for baixa, NÃO TENTE ADIVINHAR. Interrompa a generation do resumo e responda APENAS: "⚠️ Para garantir sua segurança jurídica, informo que não possuo dados com o nível de precisão exigido para sintetizar esta norma específica. Recomendo a busca direta no portal oficial do Planalto ou LexML."
 
 DIRETRIZES DE FORMATAÇÃO (MARKDOWN PURO):
 - Use negrito para dar destaque a termos jurídicos importantes.
@@ -260,7 +261,6 @@ DIRETRIZES DE FORMATAÇÃO (MARKDOWN PURO):
                     config=types.GenerateContentConfig(temperature=0.1)
                 )
                 
-                # MODO AUDITORIA: Capturando o real motivo do bloqueio da API
                 if not response.text:
                     motivo = "Desconhecido"
                     if response.candidates:
@@ -269,24 +269,23 @@ DIRETRIZES DE FORMATAÇÃO (MARKDOWN PURO):
                 st.session_state.legislacao = {"pedido": pedido_lei, "texto": response.text, "audio": None}
                 
             except Exception as e:
-                st.error(f"Falha ao processar a requisição. Detalhe técnico: {e}")    # Exibe o resultado gravado na memória
+                st.error(f"Falha ao processar a requisição. Detalhe técnico: {e}")
+
+    # EXIBE O RESULTADO GRAVADO NA MEMÓRIA (Corrigido os 4 espaços de recuo!)
     if st.session_state.legislacao:
         with st.chat_message("user"): st.markdown(st.session_state.legislacao["pedido"])
         with st.chat_message("assistant"):
             st.write(st.session_state.legislacao["texto"])
             
-            # --- NOVO FLUXO DE ÁUDIO SOB DEMANDA ---
+            # Fluxo de áudio sob demanda
             if st.session_state.legislacao["audio"]:
-                # Se o áudio já existe na memória, apenas exibe o player
                 st.audio(st.session_state.legislacao["audio"], format="audio/mp3")
             else:
-                # Se não existe, cria um botão para gerar
                 if st.button("🔊 Gerar Áudio de Acessibilidade", key="btn_gerar_audio"):
                     with st.spinner("Processando áudio..."):
-                        # Só chama a função pesada se o usuário clicar
                         novo_audio = gerar_audio_acessibilidade(st.session_state.legislacao["texto"])
                         st.session_state.legislacao["audio"] = novo_audio
-                        st.rerun() # Atualiza a interface instantaneamente para trocar o botão pelo player
+                        st.rerun()
 
             # Botões de utilidade
             col1, col2 = st.columns(2)
@@ -295,18 +294,6 @@ DIRETRIZES DE FORMATAÇÃO (MARKDOWN PURO):
             with col2:
                 st.link_button("📤 Compartilhar", f"https://api.whatsapp.com/send?text={urllib.parse.quote(str(st.session_state.legislacao['texto']))}")
 
-# --- FUNÇÃO DO DICIONÁRIO (A PEÇA QUE FALTAVA) ---
-@st.cache_data(ttl=86400, show_spinner=False)
-def consultar_dicionario_cache(termo):
-    PROMPT = f"Você é um Dicionário Jurídico dinâmico do Canal Juridiquês. Explique de forma objetiva o termo: '{termo}'. Se for latim, traduza. Use máximo dois parágrafos."
-    resposta = client.models.generate_content(
-        model='gemini-2.5-flash', 
-        contents=PROMPT, 
-        config=types.GenerateContentConfig(temperature=0.3)
-    )
-    return resposta.text
-
-# --- 4ª OPÇÃO: DICIONÁRIO ---
 # --- 4ª OPÇÃO: DICIONÁRIO ---
 elif opcao_menu == "📔 Dicionário Jurídico e Latim":
     st.subheader("📔 Dicionário Jurídico e Latim")
@@ -315,6 +302,7 @@ elif opcao_menu == "📔 Dicionário Jurídico e Latim":
     if termo_busca := st.chat_input("Ex: Erga omnes..."):
         with st.spinner("Buscando..."):
             try:
+                # Agora o Python encontra a função perfeitamente no topo do arquivo
                 resultado = consultar_dicionario_cache(termo_busca.strip().lower())
                 
                 # Desativando o áudio temporariamente para testar o bloqueio de IP
