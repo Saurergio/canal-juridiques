@@ -295,6 +295,17 @@ DIRETRIZES DE FORMATAÇÃO (MARKDOWN PURO):
             with col2:
                 st.link_button("📤 Compartilhar", f"https://api.whatsapp.com/send?text={urllib.parse.quote(str(st.session_state.legislacao['texto']))}")
 
+# --- FUNÇÃO DO DICIONÁRIO (A PEÇA QUE FALTAVA) ---
+@st.cache_data(ttl=86400, show_spinner=False)
+def consultar_dicionario_cache(termo):
+    PROMPT = f"Você é um Dicionário Jurídico dinâmico do Canal Juridiquês. Explique de forma objetiva o termo: '{termo}'. Se for latim, traduza. Use máximo dois parágrafos."
+    resposta = client.models.generate_content(
+        model='gemini-2.5-flash', 
+        contents=PROMPT, 
+        config=types.GenerateContentConfig(temperature=0.3)
+    )
+    return resposta.text
+
 # --- 4ª OPÇÃO: DICIONÁRIO ---
 elif opcao_menu == "📔 Dicionário Jurídico e Latim":
     st.subheader("📔 Dicionário Jurídico e Latim")
