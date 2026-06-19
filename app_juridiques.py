@@ -307,6 +307,7 @@ def consultar_dicionario_cache(termo):
     return resposta.text
 
 # --- 4ª OPÇÃO: DICIONÁRIO ---
+# --- 4ª OPÇÃO: DICIONÁRIO ---
 elif opcao_menu == "📔 Dicionário Jurídico e Latim":
     st.subheader("📔 Dicionário Jurídico e Latim")
     if 'dicionario' not in st.session_state: st.session_state.dicionario = None
