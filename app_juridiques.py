@@ -306,8 +306,8 @@ elif opcao_menu == "📔 Dicionário Jurídico e Latim":
                 resultado = consultar_dicionario_cache(termo_busca.strip().lower())
                 audio = gerar_audio_acessibilidade(resultado)
                 st.session_state.dicionario = {"termo": termo_busca, "texto": resultado, "audio": audio}
-            except Exception:
-                st.error("Erro ao buscar o termo.")
+            except Exception as e:
+                st.error(f"Erro ao buscar o termo. Detalhe técnico: {e}")
 
     # Exibe o resultado gravado na memória
     if st.session_state.dicionario:
