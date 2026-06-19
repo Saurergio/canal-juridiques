@@ -304,7 +304,11 @@ elif opcao_menu == "📔 Dicionário Jurídico e Latim":
         with st.spinner("Buscando..."):
             try:
                 resultado = consultar_dicionario_cache(termo_busca.strip().lower())
-                audio = gerar_audio_acessibilidade(resultado)
+                
+                # Desativando o áudio temporariamente para testar o bloqueio de IP
+                # audio = gerar_audio_acessibilidade(resultado)
+                audio = None 
+                
                 st.session_state.dicionario = {"termo": termo_busca, "texto": resultado, "audio": audio}
             except Exception as e:
                 st.error(f"Erro ao buscar o termo. Detalhe técnico: {e}")
